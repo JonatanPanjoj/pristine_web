@@ -1,0 +1,223 @@
+/* components/PPM/ppmPrint.css
+   Impresión de fichas PPM (OT y activos). En lugar de reconstruir el documento,
+   se imprime la propia vista: lo que se ve en pantalla es lo que sale en el
+   papel, en el "Guardar como PDF" del navegador o en la descarga directa.
+
+   Uso: envolver la zona imprimible en .ppm-print-area y marcar con .ppm-no-print
+   lo que no debe salir (botones, filtros, navegación). El mismo aspecto de papel
+   existe dos veces: en @media print para el diálogo del navegador y en .ppm-paper
+   para la descarga directa a PDF (ver ppmPdfDocument). */
+
+@media print {
+  /* Solo la ficha es visible; el resto del layout (sidebar, topbar) se oculta
+     sin desmontarlo, para no perder el estado de la aplicación. */
+  body * {
+    visibility: hidden;
+  }
+
+  .ppm-print-area,
+  .ppm-print-area * {
+    visibility: visible;
+  }
+
+  .ppm-print-area {
+    position: absolute !important;
+    left: 0;
+    top: 0;
+    width: 100% !important;
+    max-width: none !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+  }
+
+  .ppm-no-print,
+  .ppm-no-print * {
+    display: none !important;
+  }
+
+  /* Cuando la ficha vive en un modal, su contenedor es fixed y con scroll propio:
+     en papel se neutraliza para que fluya por todas las páginas sin recortarse. */
+  .ppm-print-overlay {
+    position: static !important;
+    overflow: visible !important;
+    display: block !important;
+    padding: 0 !important;
+    backdrop-filter: none !important;
+  }
+
+  /* Papel limpio: sin fondos de color ni sombras. Los bloques se distinguen por
+     su borde, no por relleno, para que el PDF salga presentable y no gaste tinta. */
+  .ppm-print-area,
+  .ppm-print-area * {
+    background-color: transparent !important;
+    background-image: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Las tarjetas conservan su forma con un borde fino, y ninguna se parte entre
+     dos páginas. */
+  .ppm-print-block {
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 12px !important;
+    padding: 12px !important;
+    margin-bottom: 10px !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* El membrete está oculto en pantalla; en papel es justo lo que encabeza. */
+  .ppm-print-area .ppm-print-header {
+    display: flex !important;
+  }
+
+  .ppm-print-area .ppm-print-grid {
+    display: grid !important;
+  }
+
+  /* Sin relleno de color, el texto blanco (chips, cabeceras) desaparecería. */
+  .ppm-print-area .text-white,
+  .ppm-print-area th {
+    color: #1f2933 !important;
+  }
+
+  .ppm-print-area th {
+    border-bottom: 1px solid #94a3b8 !important;
+  }
+
+  .ppm-print-area td {
+    border-bottom: 1px solid #e2e8f0 !important;
+  }
+
+  /* El gris de los campos sobrevive al papel: separa el dato de su rótulo. */
+  .ppm-print-area .ppm-field-value {
+    background-color: #f3f5f8 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Las imágenes sí conservan su color. */
+  .ppm-print-area img {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Reduce para que la ficha entre en una sola hoja A4. */
+  .ppm-print-fit {
+    zoom: 0.7;
+  }
+
+  /* El ancho de la hoja (~718px en A4) queda por debajo de los breakpoints md/lg,
+     así que las rejillas se desplomarían a una columna y la ficha impresa no se
+     parecería a la pantalla. Se reactivan a mano dentro de la zona imprimible,
+     de menor a mayor breakpoint, para reproducir la cascada de Tailwind cuando
+     un elemento combina varias (sm → md → lg). */
+  .ppm-print-area .sm\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .ppm-print-area .sm\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+
+  .ppm-print-area .md\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .ppm-print-area .md\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+  .ppm-print-area .md\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+  .ppm-print-area .md\:grid-cols-6 { grid-template-columns: repeat(6, minmax(0, 1fr)) !important; }
+
+  .ppm-print-area .lg\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .ppm-print-area .lg\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+  .ppm-print-area .lg\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+
+  /* Impresión en lote: una ficha por hoja. */
+  .ppm-print-page {
+    break-after: page;
+    page-break-after: always;
+  }
+
+  .ppm-print-page:last-child {
+    break-after: auto;
+    page-break-after: auto;
+  }
+
+  @page {
+    size: A4;
+    margin: 10mm;
+  }
+}
+
+/* Aspecto de papel para la descarga directa a PDF. html2canvas rasteriza lo que
+   ve en pantalla y nunca evalúa @media print, así que las reglas de papel se
+   repiten aquí como clase. La activa `downloadSheetAsPdf` solo mientras dura la
+   captura, para no aplanar el diseño de las fichas que sí se ven en pantalla.
+
+   No hace falta reactivar las rejillas md/lg (los breakpoints ya se cumplen con
+   el ancho real de la ventana) ni el zoom de .ppm-print-fit (cada bloque se
+   escala al ancho útil de la hoja al montarlo en el PDF). */
+.ppm-paper,
+.ppm-paper * {
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+.ppm-paper .ppm-no-print,
+.ppm-paper .ppm-no-print * {
+  display: none !important;
+}
+
+/* El membrete solo existe en el papel: en pantalla estorbaría, así que las
+   vistas pueden montarlo dentro de su zona imprimible sin que se vea. */
+.ppm-print-header {
+  display: none !important;
+}
+
+.ppm-paper .ppm-print-header {
+  display: flex !important;
+}
+
+/* Rejilla que solo existe en el papel: donde en pantalla hay un carrusel, aquí
+   salen todas las fotos, que una hoja no se puede pasar con el dedo. Va por
+   clase propia y no con la variante `print:` de Tailwind porque esa compila a
+   @media print, y la descarga directa rasteriza sin pasar por ahí. */
+.ppm-print-grid {
+  display: none !important;
+}
+
+.ppm-paper .ppm-print-grid {
+  display: grid !important;
+}
+
+.ppm-paper .ppm-print-block {
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 12px !important;
+  padding: 12px !important;
+  margin-bottom: 10px !important;
+}
+
+/* Excepción a la regla de "papel sin fondos": el gris de los campos es lo que
+   empareja cada dato con su rótulo de un vistazo, y tan claro apenas gasta tinta. */
+.ppm-paper .ppm-field-value {
+  background-color: #f3f5f8 !important;
+}
+
+.ppm-paper .text-white,
+.ppm-paper th {
+  color: #1f2933 !important;
+}
+
+.ppm-paper th {
+  border-bottom: 1px solid #94a3b8 !important;
+}
+
+.ppm-paper td {
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+
+/* Fuera de la impresión el lote no ocupa espacio ni se ve: existe solo para que
+   el navegador tenga las fichas montadas cuando se abre el diálogo. */
+@media screen {
+  .ppm-print-offscreen {
+    position: fixed;
+    left: -10000px;
+    top: 0;
+    width: 1100px;
+    pointer-events: none;
+  }
+}

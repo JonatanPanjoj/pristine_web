@@ -1,0 +1,212 @@
+{
+  "welcome_message": "Welcome",
+  "language": {
+    "select": "Select your language",
+    "english": "English",
+    "spanish": "Spanish"
+  },
+  "header": {
+    "title": "This is the header",
+    "subtitle": "Here is additional information"
+  },
+  "footer": {
+    "copyright": "All rights reserved"
+  },
+  "login": {
+    "username": "Username",
+    "password": "Password",
+    "username_placeholder": "Enter your username",
+    "password_placeholder": "Enter your password",
+    "submit": "Login",
+    "sending": "Sending...",
+    "user_disabled": "User is disabled, please contact an administrator",
+    "role_not_found": "Role not found",
+    "no_permissions": "This user has no permissions assigned, please contact an administrator",
+    "incorrect_credentials": "Incorrect username or password",
+    "error": "An error occurred while trying to login",
+    "name_required": "Username is required",
+    "password_required": "Password is required"
+  },
+  "pagination": {
+    "displayingDocuments": "Displaying documents {{start}} to {{end}} of {{total}} documents"
+,    "displayingDocumentsOnePage": "Displaying  {{total}} documents"
+,
+    "previous": "Previous",
+    "next": "Next",
+    "of": "of"
+  },
+
+
+"menu": {
+  "home": "Home",
+  "administration": "Administration",
+  "userManager": "User Manager",
+  "permissionManager": "Permission Manager",
+  "usersLocations": "Users / Sedes",
+  "usersCategories": "Users / Categories",
+  "versionManager": "Version Manager",
+  "TechnicalManagers": "Technical Managers",
+  "sedesManager": "Sedes Manager",
+  "sectorManager": "Sector Manager",
+  "areaManager": "Area Manager",
+  "categoryChecklist": "Category Checklist",
+  "categoriaHelpDeskView":"Category HelpDesk",
+  "Checklist": "Checklist",
+  "checkListManager":"Manager Checklist",
+  "registerReviewWeb":"Register Review",
+  "review&results":"Reviews and results",
+  "checklistReports":"Reports",
+  "GenerateQR":"Generate QR",
+  "checklistConfig":"QR Configuration",
+  "automaticReports":"Automatic Reports",
+  "HelpDesk": "Help Desk",
+
+  "HelpDeskPrioritiesManager":"Manager of Priorities",
+  "incidentManager":"Manager of Incidents",
+  "statusManager":"Manager of Statuses",
+  "ticketManager":"Ticket Management",
+  "helpdeskReports":"Reports"
+}
+,
+  "Search": {
+    "userManagement": "User Management",
+    "allUsers": "All Users",
+    "searchPlaceholder": "Search",
+    "searchButton": "Search",
+    "clearButton": "Clear"
+  },
+
+
+  "userForm": {
+    "form": {
+      "name": "Name",
+      "email": "Email",
+      "userRole": "User Role",
+      "phone": "Phone",
+      "user": "Username",
+      "password": "Password",
+      "changePasswordOnLogin": "Require password change on login",
+      "selectRole": "Select role",
+      "editUser": "Edit User",
+      "viewUser": "View User",
+      "createdAt": "Created At",
+      "cancel":"Exit",
+
+      "updateSuccess": "The user has been updated successfully",
+      "updateError": "There was an error updating"
+
+    },
+    "button": {
+      "save": "Save",
+      "cancel": "Cancel",
+      "loading": "Loading..."
+    },
+    "validation": {
+      "required": "This field is required",
+      "invalidEmail": "Invalid email address"
+    }
+  },
+  "roleForm": {
+    "form": {
+      "addRole": "Add Role",
+      "name": "Role Name",
+      "description": "Role Description",
+      "addSuccess": "Role created successfully.",
+      "addError": "Error creating role.",
+      "updateSuccess": "Role updated successfully.",
+      "updateError": "Error updating role.",
+      "createdAt": "Creation Date",
+      "loading": "Loading...",
+      "cancel": "Cancel"
+    },
+    "button": {
+      "save": "Save",
+      "loading": "Saving..."
+    },
+    "validation": {
+      "required": "This field is required",
+      "invalidEmail": "Invalid email"
+    },
+    "confirmation": {
+      "message": "Are you sure you want to save this role?"
+    }
+  },
+"sedeForm": {
+  "form": {
+    "name": "Name",
+    "department": "Department",
+    "municipality": "Municipality",
+    "address": "Address",
+    "zone": "Zone",
+    "latitude": "Latitude",
+    "length": "Longitude"
+  },
+  "button": {
+    "openMap": "Open Map",
+    "latLngOnly": "Get Latitude and Longitude only",
+    "fullLocation": "Get Full Location"
+  },
+  "validation": {
+    "required": "This field is required"
+  }
+},
+
+"categoriaForm": {
+  "form": {
+    "name": "Category Name",
+    "color": "Category Color"
+  },
+  "validation": {
+    "required": "This field is required.",
+    "color": "Please enter a valid hexadecimal color code (e.g., #000000)."
+  }
+},
+
+
+"priorityForm": {
+  "form": {
+    "name": "Priority Name",
+    "responseTime": "Response Time Limit",
+    "solutionTime": "Solution Time Limit",
+    "reminderTime": "Reminder before expiration",
+    "sms": "SMS Notification",
+    "color": "Color"
+  },
+  "validation": {
+    "required": "This field is required.",
+    "time": "Format must be HH:MM.",
+    "color": "Color must be a valid hex code."
+  },
+  "messages": {
+    "createSuccess": "Priority created successfully.",
+    "editSuccess": "Priority edited successfully.",
+    "toggleStatusSuccess": "Priority status changed successfully.",
+    "toggleStatusError": "Error changing priority status."
+  },
+  "buttons": {
+    "save": "Save Priority",
+    "edit": "Edit Priority",
+    "search": "Search",
+    "add": "Add Priority"
+  }
+},
+"areaForm": {
+  "form": {
+    "sede": "Site",
+    "sector": "Sector",
+    "name": "Area name"
+  },
+  "validation": {
+    "required": "This field is required"
+  }
+},
+"sectorForm": {
+  "form": {
+    "sede": "Site",
+    "name": "Sector name"
+  },
+  "validation": {
+    "required": "This field is required"
+  }
+}
+}

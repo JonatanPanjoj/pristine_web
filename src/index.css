@@ -1,0 +1,336 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Tipografía del sistema ────────────────────────────────────────────────────
+   Inter: fuente base y de encabezados limpia y profesional para todo el sistema
+   ─────────────────────────────────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+/* ── Reset de base ────────────────────────────────────────────────────────── */
+@layer base {
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-[#F6F7FD] text-gray-800;
+    font-family: 'Inter', sans-serif;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: 'Inter', sans-serif;
+    @apply font-semibold text-gray-900;
+  }
+
+  /* Títulos con la fuente editorial — se activa con la clase .title-serif */
+  .title-serif {
+    font-family: 'Inter', sans-serif;
+  }
+}
+
+/* ── Componentes globales ──────────────────────────────────────────────────── */
+@layer components {
+
+  /* ── Inputs y textareas ──────────────────────────────────────────────────── */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="tel"],
+  input[type="search"],
+  input[type="date"],
+  textarea {
+    /* FIX: Se eliminó w-full y px/py del reset global.
+       w-full sobreescribía anchos del componente (ej. w-60 del buscador).
+       px-3 py-2 sobreescribía paddings con ícono (pl-9 pr-8).
+       Ancho y padding los define cada componente; aquí solo aspecto visual. */
+    @apply rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 transition-all duration-150;
+  }
+
+  input[type="text"]:disabled,
+  input[type="email"]:disabled,
+  input[type="password"]:disabled,
+  input[type="number"]:disabled,
+  input[type="tel"]:disabled,
+  textarea:disabled {
+    @apply bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200;
+  }
+
+  /* ── Selects ────────────────────────────────────────────────────────────── */
+  /* REEMPLAZA los estilos azules anteriores — ahora todos los selects usan
+     la paleta del sistema: fondo gris suave, foco naranja.               */
+  /* ── Selects ────────────────────────────────────────────────────────────── */
+  select {
+    @apply w-full px-3 py-2 rounded-xl border border-gray-200 bg-white text-sm text-gray-700 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 transition-all duration-150 cursor-pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 2.25rem;
+    -webkit-appearance: none;
+    appearance: none;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  }
+
+  select:hover:not(:disabled) {
+    @apply border-gray-300 bg-white;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  }
+
+  select:focus {
+    @apply bg-white;
+    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.12);
+  }
+
+  select:disabled {
+    @apply bg-gray-50 text-gray-400 cursor-not-allowed border-gray-100;
+    box-shadow: none;
+  }
+
+  select.error,
+  select.border-red-300 {
+    border-color: #FCA5A5;
+  }
+
+  select.error:focus,
+  select.border-red-300:focus {
+    border-color: #F87171;
+    box-shadow: 0 0 0 3px rgba(254, 202, 202, 0.4);
+    outline: none;
+  }
+
+  select option {
+    @apply text-gray-800 bg-white py-1;
+    font-size: 0.875rem;
+  }
+
+  select option:hover,
+  select option:focus,
+  select option:checked {
+    background-color: #FFF7ED !important;
+    /* orange-50 */
+    color: #EA580C !important;
+    /* orange-600 */
+  }
+
+  /* ── Checkboxes ─────────────────────────────────────────────────────────── */
+  /* Reemplaza los checkboxes naranja/cuadrado del CSS anterior con un estilo
+     más limpio que respeta el contexto (naranja cuando está marcado). */
+  input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    appearance: none;
+    -webkit-appearance: none;
+    background-color: #ffffff;
+    border: 1.5px solid #D1D5DB;
+    /* gray-300 */
+    border-radius: 4px;
+    cursor: pointer;
+    position: relative;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+    flex-shrink: 0;
+  }
+
+  input[type="checkbox"]:hover:not(:disabled) {
+    border-color: #F97316;
+    /* orange-500 */
+  }
+
+  input[type="checkbox"]:checked {
+    background-color: #F97316;
+    /* orange-500 */
+    border-color: #F97316;
+  }
+
+  input[type="checkbox"]:checked::before {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 4.5px;
+    width: 4px;
+    height: 7px;
+    border: 2px solid white;
+    border-top: none;
+    border-left: none;
+    transform: rotate(45deg);
+  }
+
+  input[type="checkbox"]:disabled {
+    @apply opacity-50 cursor-not-allowed;
+  }
+
+  /* ── Botón primario ─────────────────────────────────────────────────────── */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white bg-orange-500 hover:bg-orange-600 active:bg-orange-700 transition-all duration-150 shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  /* ── Botón secundario / fantasma ────────────────────────────────────────── */
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-1;
+  }
+
+  /* ── Card base ──────────────────────────────────────────────────────────── */
+  .card {
+    @apply bg-white rounded-2xl border border-gray-100;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 16px rgba(0, 0, 0, 0.05);
+  }
+
+  /* ── Badge de estado ────────────────────────────────────────────────────── */
+  .badge-active {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200;
+  }
+
+  .badge-inactive {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500 border border-gray-200;
+  }
+
+  .badge-role {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-sky-50 text-sky-700 border border-sky-100;
+  }
+}
+
+/* ── Utilidades globales ───────────────────────────────────────────────────── */
+@layer utilities {
+  .font-inter {
+    font-family: 'Inter', sans-serif;
+  }
+
+  /* ── Scrollbar personalizada — gris slate suave, delgada (Estilo OSA) ─── */
+  .scrollbar-custom {
+    scrollbar-width: thin;
+    scrollbar-color: #CBD5E1 transparent;
+  }
+
+  .scrollbar-custom::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .scrollbar-custom::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 9999px;
+  }
+
+  .scrollbar-custom::-webkit-scrollbar-thumb {
+    background: #CBD5E1;
+    border-radius: 9999px;
+  }
+
+  .scrollbar-custom::-webkit-scrollbar-thumb:hover {
+    background: #94A3B8;
+  }
+
+  /* modal-scrollbar: alias del anterior — mantiene compatibilidad con
+     componentes que ya usan esta clase */
+  .modal-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: #FDBA74 #F3F4F6;
+  }
+
+  .modal-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .modal-scrollbar::-webkit-scrollbar-track {
+    background: #F3F4F6;
+    border-radius: 9999px;
+  }
+
+  .modal-scrollbar::-webkit-scrollbar-thumb {
+    background: #FDBA74;
+    border-radius: 9999px;
+  }
+
+  .modal-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #F97316;
+  }
+}
+
+/* ── Transiciones de página ────────────────────────────────────────────────── */
+.page-enter {
+  @apply opacity-0 translate-x-4;
+}
+
+.page-enter-active {
+  @apply opacity-100 translate-x-0 transition-all duration-300 ease-out;
+}
+
+.page-exit {
+  @apply opacity-100 translate-x-0;
+}
+
+.page-exit-active {
+  @apply opacity-0 -translate-x-4 transition-all duration-300 ease-in;
+}
+
+/* ── Fondo de la página de login ───────────────────────────────────────────── */
+/* SOLO se aplica en la ruta /login, nunca en el layout principal */
+.bg-login {
+  background-image: url('/public/img/background/bg-login.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* ── FullCalendar — ajustado a la paleta naranja ───────────────────────────── */
+.fc .fc-toolbar-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1C1917;
+}
+
+.fc .fc-button {
+  background-color: #F97316 !important;
+  border-color: #EA580C !important;
+  color: white !important;
+  border-radius: 8px !important;
+  font-size: 0.8rem !important;
+  padding: 4px 10px !important;
+  box-shadow: none !important;
+}
+
+.fc .fc-button:hover {
+  background-color: #EA580C !important;
+}
+
+.fc .fc-button:focus {
+  box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.3) !important;
+}
+
+.fc .fc-daygrid-day-number {
+  color: #374151;
+  font-size: 0.8rem;
+}
+
+.fc .fc-day-today {
+  background-color: #FFF7ED !important;
+}
+
+.fc .fc-event {
+  background-color: #F97316 !important;
+  border-color: #EA580C !important;
+  color: white !important;
+  border-radius: 6px !important;
+  font-size: 0.75rem !important;
+}
+
+/* ── Tabla: quita el padding en mobile (solo table nativa) ─────────────────── */
+@media (max-width: 768px) {
+  table {
+    font-size: 0.75rem;
+  }
+}

@@ -1,0 +1,199 @@
+{
+  "welcome_message": "Bienvenido",
+  "language": {
+    "select": "Selecciona tu idioma",
+    "english": "Inglés",
+    "spanish": "Español"
+  },
+  "header": {
+    "title": "Este es el encabezado",
+    "subtitle": "Aquí hay información adicional"
+  },
+  "footer": {
+    "copyright": "Todos los derechos reservados"
+  },
+  "login": {
+    "username": "Nombre de usuario",
+    "password": "Contraseña",
+    "username_placeholder": "Ingresa tu nombre de usuario",
+    "password_placeholder": "Ingresa tu contraseña",
+    "submit": "Iniciar sesión",
+    "sending": "Enviando...",
+    "user_disabled": "El usuario está deshabilitado, por favor contacta a un administrador",
+    "role_not_found": "Rol no encontrado",
+    "no_permissions": "El usuario no tiene permisos asignados, por favor contacta a un administrador",
+    "incorrect_credentials": "Nombre de usuario o contraseña incorrectos",
+    "error": "Ocurrió un error al intentar iniciar sesión",
+    "name_required": "El nombre de usuario es obligatorio",
+    "password_required": "La contraseña es obligatoria"
+  },
+  "pagination": {
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "of": "de",
+    "displayingDocuments": "Mostrando documentos {{start}} al {{end}} de {{total}} documentos",
+    "displayingDocumentsOnePage": "Mostrando {{total}} documentos"
+  },
+  "menu": {
+    "home": "Inicio",
+    "administration": "Administración",
+    "userManager": "Gestor de Usuarios",
+    "permissionManager": "Gestor de Permisos",
+    "usersLocations": "Usuarios / Sedes",
+    "usersCategories": "Usuarios / Categorías",
+    "versionManager": "Gestor de Versiones",
+    "TechnicalManagers": "Gestor de Técnicos",
+    "sedesManager": "Gestor de Sedes",
+    "sectorManager": "Gestor de Sectores",
+    "areaManager": "Gestor de Áreas",
+    "categoryChecklist": "Categoria Checklist",
+    "categoriaHelpDeskView": "Categoria HelpDesk",
+    "Checklist": "Checklist",
+    "checkListManager": "Gestor de Checklist",
+    "registerReviewWeb": "Registrar Revisión",
+    "review&results": "Revisiones y Resultados",
+    "checklistReports": "Reportes",
+    "GenerateQR": "Generar QR",
+    "checklistConfig": "Configuración de QR",
+    "automaticReports": "Reportes Automáticos",
+    "HelpDeskPrioritiesManager": "Gestor de Prioridades",
+    "incidentManager": "Gestor de Incidentes",
+    "statusManager": "Gestor de Estados",
+    "ticketManager": "Gestión de Tickets",
+    "helpdeskReports": "Reportes"
+  },
+  "Search": {
+    "userManagement": "Gestor de Usuarios",
+    "allUsers": "Todos los Usuarios",
+    "searchPlaceholder": "Buscar",
+    "searchButton": "Buscar",
+    "clearButton": "Vaciar"
+  },
+  "userForm": {
+    "form": {
+      "name": "Nombre",
+      "email": "Correo electrónico",
+      "userRole": "Rol de usuario",
+      "phone": "Teléfono",
+      "user": "Nombre de usuario",
+      "password": "Contraseña",
+      "changePasswordOnLogin": "Requerir cambio de contraseña al iniciar sesión",
+      "selectRole": "Seleccionar rol",
+      "editUser": "Editar Usuario",
+      "viewUser": "Ver Usuario",
+      "createdAt": "Fecha de Creación",
+      "cancel": "salir",
+      "updateSuccess": "Se ha actualizado el usuario correctamente",
+      "updateError": "Hubo un error al actualizar"
+    },
+    "button": {
+      "save": "Guardar",
+      "cancel": "Cancelar",
+      "loading": "Cargando..."
+    },
+    "validation": {
+      "required": "Este campo es obligatorio",
+      "invalidEmail": "Dirección de correo electrónico inválida"
+    }
+  },
+  "roleForm": {
+    "form": {
+      "addRole": "Añadir Rol",
+      "name": "Nombre del Rol",
+      "description": "Descripción del Rol",
+      "addSuccess": "Rol creado con éxito.",
+      "addError": "Error al crear el rol.",
+      "updateSuccess": "Rol actualizado con éxito.",
+      "updateError": "Error al actualizar el rol.",
+      "createdAt": "Fecha de Creación",
+      "loading": "Cargando...",
+      "cancel": "Cancelar"
+    },
+    "button": {
+      "save": "Guardar",
+      "loading": "Guardando..."
+    },
+    "validation": {
+      "required": "Este campo es obligatorio",
+      "invalidEmail": "Correo electrónico inválido"
+    },
+    "confirmation": {
+      "message": "¿Estás seguro de que quieres guardar este rol?"
+    }
+  },
+  "sedeForm": {
+    "form": {
+      "name": "Nombre",
+      "department": "Departamento",
+      "municipality": "Municipio",
+      "address": "Dirección",
+      "zone": "Zona",
+      "latitude": "Latitud",
+      "length": "Longitud"
+    },
+    "button": {
+      "openMap": "Abrir Mapa",
+      "latLngOnly": "Obtener solo Latitud y Longitud",
+      "fullLocation": "Obtener Ubicación Completa"
+    },
+    "validation": {
+      "required": "Este campo es obligatorio"
+    }
+  },
+  "categoriaForm": {
+    "form": {
+      "name": "Nombre de la categoría",
+      "color": "Color de la categoría"
+    },
+    "validation": {
+      "required": "Este campo es obligatorio.",
+      "color": "Introduce un código de color hexadecimal válido (por ejemplo, #000000)."
+    }
+  },
+  "priorityForm": {
+    "form": {
+      "name": "Nombre de la Prioridad",
+      "responseTime": "Tiempo de Respuesta",
+      "solutionTime": "Tiempo de Solución",
+      "reminderTime": "Recordatorio antes del vencimiento",
+      "sms": "Notificación por SMS",
+      "color": "Color"
+    },
+    "validation": {
+      "required": "Este campo es obligatorio.",
+      "time": "El formato debe ser HH:MM.",
+      "color": "El color debe ser un código hexadecimal válido."
+    },
+    "messages": {
+      "createSuccess": "Prioridad creada con éxito.",
+      "editSuccess": "Prioridad editada con éxito.",
+      "toggleStatusSuccess": "Estado de la prioridad cambiado con éxito.",
+      "toggleStatusError": "Error al cambiar el estado de la prioridad."
+    },
+    "buttons": {
+      "save": "Guardar Prioridad",
+      "edit": "Editar Prioridad",
+      "search": "Buscar",
+      "add": "Agregar Prioridad"
+    }
+  },
+  "areaForm": {
+    "form": {
+      "sede": "Sede",
+      "sector": "Sector",
+      "name": "Nombre del área"
+    },
+    "validation": {
+      "required": "Este campo es obligatorio"
+    }
+  },
+  "sectorForm": {
+    "form": {
+      "sede": "Sede",
+      "name": "Nombre del Sector"
+    },
+    "validation": {
+      "required": "Este campo es obligatorio"
+    }
+  }
+}

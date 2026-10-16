@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: pristine-backend
+    restart: always
+    ports:
+      - "5000:5000"
+    environment:
+      SERVER_PORT: 5000
+      # Cambia esta IP por la IP privada (o pública) de tu Servidor 2 (MongoDB en AWS):
+      MONGODB_URI: ${MONGODB_URI:-mongodb://localhost:27017/pristine}
+    networks:
+      - pristine-net
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+      args:
+        # URL de la API a la que el navegador del usuario final consultará:
+        REACT_APP_API_URL: ${REACT_APP_API_URL:-http://localhost:5000/api}
+    container_name: pristine-frontend
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - pristine-net
+
+networks:
+  pristine-net:
+    driver: bridge
