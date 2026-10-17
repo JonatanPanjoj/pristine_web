@@ -21,8 +21,8 @@ services:
       context: .
       dockerfile: Dockerfile.frontend
       args:
-        # URL de la API a la que el navegador del usuario final consultará (IP Elástica SRV-01):
-        REACT_APP_API_URL: ${REACT_APP_API_URL:-http://18.223.202.252:5000/api}
+        # Ruta relativa: Nginx en el puerto 80 hace proxy directo a backend:5000 (sin problemas de CORS ni IPs)
+        REACT_APP_API_URL: /api
         # URL del Servidor 3 de imágenes (SRV-03):
         REACT_APP_STORAGE_URL: ${REACT_APP_STORAGE_URL:-http://3.130.212.65:8080}
     container_name: pristine-frontend
