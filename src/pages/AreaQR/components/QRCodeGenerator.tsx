@@ -1,10 +1,11 @@
-import React, { useMemo, useRef } from 'react';
+import React, { useMemo, useRef, useState, useEffect } from 'react';
 import qrcode from 'qrcode-generator';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import { FiDownload } from 'react-icons/fi';
 import { BsFilePdf } from 'react-icons/bs';
 import PristineLogo from './PristineLogo';
+import { waitForImages } from '../../../components/PPM/waitForImages';
 
 interface QRCodeGeneratorProps {
   text: string;
@@ -83,10 +84,21 @@ const formatText = (text: string) => {
 const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({ text, sedePhoto, sedeName }) => {
   const refToPrint = useRef<HTMLDivElement>(null);
   const code = useMemo(() => extractCode(text), [text]);
+  const [imageError, setImageError] = useState(false);
+
+  useEffect(() => {
+    setImageError(false);
+  }, [sedePhoto]);
 
   const handlePrintImage = async () => {
     if (!refToPrint.current) return;
-    const canvas = await html2canvas(refToPrint.current, { scale: 3, backgroundColor: '#ffffff', useCORS: true, allowTaint: true });
+    await waitForImages(refToPrint.current);
+    const canvas = await html2canvas(refToPrint.current, {
+      scale: 3,
+      backgroundColor: '#ffffff',
+      useCORS: true,
+      allowTaint: false,
+    });
     const link = document.createElement('a');
     link.href = canvas.toDataURL('image/png');
     link.download = `qrcode-${code}.png`;
@@ -95,7 +107,13 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({ text, sedePhoto, sede
 
   const handlePrintPDF = async () => {
     if (!refToPrint.current) return;
-    const canvas = await html2canvas(refToPrint.current, { scale: 3, backgroundColor: '#ffffff', useCORS: true, allowTaint: true });
+    await waitForImages(refToPrint.current);
+    const canvas = await html2canvas(refToPrint.current, {
+      scale: 3,
+      backgroundColor: '#ffffff',
+      useCORS: true,
+      allowTaint: false,
+    });
     const imgData = canvas.toDataURL('image/png');
     const pdf = new jsPDF({ orientation: 'portrait', unit: 'px', format: 'letter' });
     const pageWidth  = pdf.internal.pageSize.getWidth();
@@ -105,6 +123,9 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({ text, sedePhoto, sede
     pdf.addImage(imgData, 'PNG', (pageWidth - imgWidth) / 2, (pageHeight - imgHeight) / 2, imgWidth, imgHeight);
     pdf.save(`qrcode-${code}.pdf`);
   };
+
+  const hasPhoto = Boolean(sedePhoto && !imageError);
+  const isDataUrl = sedePhoto ? sedePhoto.startsWith('data:') : false;
 
   return (
     <div className="flex flex-col items-center gap-6 p-6">
@@ -120,13 +141,14 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({ text, sedePhoto, sede
       >
         {/* Logo de la Sede o Pristine */}
         <div style={{ width: 220, margin: '0 auto 20px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          {sedePhoto ? (
+          {hasPhoto ? (
             <img
-              src={sedePhoto}
+              src={sedePhoto!}
               alt={sedeName || 'Logo Sede'}
               className="max-h-16 w-auto object-contain mx-auto"
               style={{ maxHeight: 60, maxWidth: '100%' }}
-              crossOrigin="anonymous"
+              crossOrigin={isDataUrl ? undefined : 'anonymous'}
+              onError={() => setImageError(true)}
             />
           ) : (
             <PristineLogo />

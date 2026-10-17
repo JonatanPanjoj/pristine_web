@@ -684,20 +684,332 @@ const syncMissingRevisions = async (req, res) => {
   }
 };
 
-// ── DASHBOARD STATS ──
+// ── DASHBOARD STATS (Métricas dinámicas dependientes de filtros y revisiones) ──
 const getDashboardStats = async (req, res) => {
   try {
-    const totalRevisions = await ChecklistRevision.countDocuments();
-    const completed = await ChecklistRevision.countDocuments({ status: 'completed' });
-    const inProgress = await ChecklistRevision.countDocuments({ status: 'in_progress' });
-    const totalChecklists = await Checklist.countDocuments();
-    const totalSchedules = await ChecklistSchedule.countDocuments();
+    const { sedeId, sectorId, areaId, categoryId, statusId, startDate, endDate } = req.query;
 
-    // Promedio de puntuación
-    const avgScoreAgg = await ChecklistRevision.aggregate([
-      { $group: { _id: null, avgScore: { $avg: '$score' } } }
+    // 1. Condiciones para Revisiones
+    const revisionConditions = [];
+    if (sedeId) {
+      revisionConditions.push({ $or: [{ sede_id: sedeId }, { sedeId: sedeId }, { 'location.sedeId': sedeId }] });
+    }
+    if (sectorId) {
+      revisionConditions.push({ $or: [{ sector_id: sectorId }, { sectorId: sectorId }, { 'location.sectorId': sectorId }] });
+    }
+    if (areaId) {
+      const numAreaId = Number(areaId);
+      revisionConditions.push({
+        $or: [
+          { area_id: areaId },
+          { areaId: areaId },
+          { 'location.areaId': areaId },
+          ...(!isNaN(numAreaId) ? [{ area_id: numAreaId }, { 'location.areaId': numAreaId }] : [])
+        ]
+      });
+    }
+    if (categoryId) {
+      revisionConditions.push({
+        $or: [
+          { category_id: categoryId },
+          { categoryId: categoryId },
+          { 'checklist.categoryId': categoryId },
+          { 'checklist.category_id': categoryId }
+        ]
+      });
+    }
+    if (statusId) {
+      if (statusId === 'expired' || statusId === 'overdue') {
+        revisionConditions.push({ $or: [{ status: 'expired' }, { status: 'overdue' }] });
+      } else {
+        revisionConditions.push({ status: statusId });
+      }
+    }
+    if (startDate || endDate) {
+      let start = startDate ? new Date(startDate) : new Date(0);
+      let end = endDate ? new Date(endDate) : new Date('2099-12-31');
+
+      if (typeof endDate === 'string' && endDate.length <= 10) {
+        end = new Date(endDate + 'T23:59:59.999Z');
+      } else if (endDate) {
+        end = new Date(endDate);
+        if (end.getHours() === 0 && end.getMinutes() === 0 && end.getSeconds() === 0) {
+          end.setHours(23, 59, 59, 999);
+        }
+      }
+
+      const startISO = start.toISOString();
+      const endISO = end.toISOString();
+      const startDateStr = startISO.slice(0, 10);
+      const endDateStr = endISO.slice(0, 10);
+
+      revisionConditions.push({
+        $or: [
+          { revision_date: { $gte: start, $lte: end } },
+          { created_at: { $gte: start, $lte: end } },
+          { startDate: { $gte: startISO, $lte: endISO } },
+          { startDate: { $gte: startDateStr, $lte: endDateStr + 'T23:59:59' } },
+        ]
+      });
+    }
+
+    const revisionFilter = revisionConditions.length > 0 ? { $and: revisionConditions } : {};
+
+    // 2. Condiciones para Programaciones (Schedules)
+    const scheduleConditions = [];
+    if (sedeId) {
+      scheduleConditions.push({ $or: [{ sede_id: sedeId }, { sedeId: sedeId }] });
+    }
+    if (sectorId) {
+      scheduleConditions.push({ $or: [{ sector_id: sectorId }, { sectorId: sectorId }] });
+    }
+    if (areaId) {
+      const numAreaId = Number(areaId);
+      scheduleConditions.push({
+        $or: [
+          { area_id: areaId },
+          { areaId: areaId },
+          ...(!isNaN(numAreaId) ? [{ area_id: numAreaId }, { areaId: numAreaId }] : [])
+        ]
+      });
+    }
+    if (categoryId) {
+      const matchingChecklists = await Checklist.find({
+        $or: [{ categoryId }, { category_id: categoryId }]
+      }).select('_id');
+      const chkIds = matchingChecklists.map(c => c._id.toString());
+      scheduleConditions.push({
+        $or: [
+          { checklistId: { $in: chkIds } },
+          { checklist_id: { $in: chkIds } }
+        ]
+      });
+    }
+    const scheduleFilter = scheduleConditions.length > 0 ? { $and: scheduleConditions } : {};
+
+    // 3. Ejecutar consultas
+    const [matchingRevisions, matchingSchedules, allSedes, allAreas] = await Promise.all([
+      ChecklistRevision.find(revisionFilter).lean(),
+      ChecklistSchedule.find(scheduleFilter).lean(),
+      Sede.find().lean(),
+      Area.find().lean(),
     ]);
-    const averageScore = avgScoreAgg.length > 0 ? Math.round(avgScoreAgg[0].avgScore) : 100;
+
+    // 4. Conteo de Estados
+    const totalRevisions = matchingRevisions.length;
+    let completed = 0;
+    let inProgress = 0;
+    let pending = 0;
+    let overdue = 0;
+
+    matchingRevisions.forEach((rev) => {
+      const st = String(rev.status || '').toLowerCase();
+      if (st === 'completed') completed++;
+      else if (st === 'in_progress') inProgress++;
+      else if (st === 'overdue' || st === 'expired') overdue++;
+      else pending++;
+    });
+
+    const totalScheduled = matchingSchedules.length;
+    const scheduledToday = totalScheduled > 0 ? totalScheduled : (totalRevisions > 0 ? totalRevisions : 0);
+    const executedToday = completed;
+
+    // Cumplimiento global
+    let compliancePct = 100;
+    if (totalRevisions > 0) {
+      compliancePct = Math.round((completed / totalRevisions) * 100);
+    } else if (scheduledToday > 0) {
+      compliancePct = 0;
+    }
+
+    const coveragePct = scheduledToday > 0 ? Math.min(100, Math.round(((completed + inProgress) / scheduledToday) * 100)) : 100;
+
+    // Etiqueta de periodo
+    let periodLabel = 'General';
+    if (startDate && endDate) {
+      periodLabel = startDate === endDate ? startDate : `${startDate} a ${endDate}`;
+    } else if (startDate) {
+      periodLabel = `Desde ${startDate}`;
+    } else if (endDate) {
+      periodLabel = `Hasta ${endDate}`;
+    } else {
+      periodLabel = 'Últimos 30 días';
+    }
+
+    // 5. Cumplimiento por Sede (locationCompliance / bySede)
+    const sedeMap = new Map();
+    allSedes.forEach(s => {
+      const id = s.id || s._id.toString();
+      sedeMap.set(id, { name: s.name, completed: 0, total: 0 });
+    });
+
+    matchingRevisions.forEach(rev => {
+      const sId = String(rev.location?.sedeId || rev.sede_id || rev.sedeId || '');
+      let sEntry = sedeMap.get(sId);
+      if (!sEntry) {
+        const sName = rev.location?.sedeName || 'Sede';
+        sEntry = { name: sName, completed: 0, total: 0 };
+        sedeMap.set(sId, sEntry);
+      }
+      sEntry.total++;
+      if (String(rev.status || '').toLowerCase() === 'completed') {
+        sEntry.completed++;
+      }
+    });
+
+    let locationCompliance = [];
+    if (sedeId) {
+      const single = sedeMap.get(String(sedeId));
+      if (single) {
+        const val = single.total > 0 ? Math.round((single.completed / single.total) * 100) : 100;
+        locationCompliance.push({ name: single.name, value: val });
+      }
+    } else {
+      const byNameMap = new Map();
+      Array.from(sedeMap.values()).forEach(s => {
+        const cur = byNameMap.get(s.name) || { completed: 0, total: 0 };
+        cur.completed += s.completed;
+        cur.total += s.total;
+        byNameMap.set(s.name, cur);
+      });
+      locationCompliance = Array.from(byNameMap.entries())
+        .filter(([_, s]) => s.total > 0)
+        .map(([name, s]) => ({
+          name,
+          value: s.total > 0 ? Math.round((s.completed / s.total) * 100) : 100
+        }));
+    }
+
+    if (locationCompliance.length === 0) {
+      const uniqueNames = Array.from(new Set(allSedes.map(s => s.name))).slice(0, 5);
+      locationCompliance = uniqueNames.map(name => ({ name, value: 100 }));
+    }
+
+    // 6. Estado de Revisiones (Donut)
+    const statusData = [
+      { name: 'Completadas', value: completed, color: '#10B981' },
+      { name: 'En Proceso', value: inProgress, color: '#389CD6' },
+      { name: 'Atrasadas', value: overdue, color: '#EF4444' },
+      { name: 'Pendientes', value: pending, color: '#F59E0B' },
+    ];
+
+    // 7. Tendencia de Cumplimiento
+    const dayStatsMap = new Map();
+    matchingRevisions.forEach(rev => {
+      const rawDate = rev.startDate || rev.created_at || rev.revision_date;
+      if (!rawDate) return;
+      const d = new Date(rawDate);
+      if (isNaN(d.getTime())) return;
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      const dateStr = `${yyyy}-${mm}-${dd}`;
+      const isComp = String(rev.status || '').toLowerCase() === 'completed';
+      const cur = dayStatsMap.get(dateStr) || { completed: 0, total: 0, date: d };
+      cur.total++;
+      if (isComp) cur.completed++;
+      dayStatsMap.set(dateStr, cur);
+    });
+
+    let trendData = [];
+    if (dayStatsMap.size > 0) {
+      const sortedDates = Array.from(dayStatsMap.keys()).sort();
+      trendData = sortedDates.slice(-14).map(dateStr => {
+        const item = dayStatsMap.get(dateStr);
+        const dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+        const dayLabel = `${dayNames[item.date.getDay()]} ${item.date.getDate()}`;
+        return {
+          name: dayLabel,
+          value: item.total > 0 ? Math.round((item.completed / item.total) * 100) : 100,
+        };
+      });
+    }
+
+    if (trendData.length === 0) {
+      const dayNames = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie'];
+      trendData = dayNames.map((d) => ({
+        name: d,
+        value: compliancePct > 0 ? compliancePct : 100
+      }));
+    }
+
+    // 8. Mapa de Calor (Área vs Hora) y Áreas Críticas
+    const areaStatsMap = new Map();
+    allAreas.forEach(a => {
+      const id = a.id || a._id.toString();
+      areaStatsMap.set(id, {
+        name: a.name,
+        completed: 0,
+        total: 0,
+        hours: { '06:00': { c: 0, t: 0 }, '12:00': { c: 0, t: 0 }, '18:00': { c: 0, t: 0 }, '22:00': { c: 0, t: 0 } }
+      });
+    });
+
+    matchingRevisions.forEach(rev => {
+      const aId = String(rev.location?.areaId ?? rev.area_id ?? rev.areaId ?? '');
+      let aEntry = areaStatsMap.get(aId);
+      if (!aEntry) {
+        const aName = rev.location?.areaName || (aId ? `Área ${aId}` : 'Área General');
+        aEntry = {
+          name: aName,
+          completed: 0,
+          total: 0,
+          hours: { '06:00': { c: 0, t: 0 }, '12:00': { c: 0, t: 0 }, '18:00': { c: 0, t: 0 }, '22:00': { c: 0, t: 0 } }
+        };
+        areaStatsMap.set(aId, aEntry);
+      }
+
+      aEntry.total++;
+      const isComp = String(rev.status || '').toLowerCase() === 'completed';
+      if (isComp) aEntry.completed++;
+
+      // Determinar hora
+      let hourNum = 12;
+      const timeStr = rev.scheduleSnapshot?.startTime || rev.startDate;
+      if (timeStr) {
+        const timeMatch = String(timeStr).match(/(\d{1,2}):\d{2}/);
+        if (timeMatch) hourNum = parseInt(timeMatch[1], 10);
+      }
+
+      let slot = '12:00';
+      if (hourNum >= 6 && hourNum < 12) slot = '06:00';
+      else if (hourNum >= 12 && hourNum < 18) slot = '12:00';
+      else if (hourNum >= 18 && hourNum < 22) slot = '18:00';
+      else slot = '22:00';
+
+      aEntry.hours[slot].t++;
+      if (isComp) aEntry.hours[slot].c++;
+    });
+
+    const activeAreas = Array.from(areaStatsMap.values()).filter(a => a.total > 0);
+    const targetAreas = activeAreas.length > 0 ? activeAreas : Array.from(areaStatsMap.values()).slice(0, 4);
+
+    const heatmapData = targetAreas.slice(0, 5).map(a => {
+      const calcSlot = (slotKey) => {
+        const h = a.hours[slotKey];
+        if (h && h.t > 0) return Math.round((h.c / h.t) * 100);
+        return a.total > 0 ? Math.round((a.completed / a.total) * 100) : 100;
+      };
+      return {
+        area: a.name,
+        '06:00': calcSlot('06:00'),
+        '12:00': calcSlot('12:00'),
+        '18:00': calcSlot('18:00'),
+        '22:00': calcSlot('22:00'),
+      };
+    });
+
+    // 9. Ranking de Áreas Críticas (Menor cumplimiento)
+    const worstAreas = targetAreas
+      .map(a => ({
+        name: a.name,
+        value: a.total > 0 ? Math.round((a.completed / a.total) * 100) : 100
+      }))
+      .sort((a, b) => a.value - b.value)
+      .slice(0, 5);
+
+    const worstAreaName = worstAreas.length > 0 ? worstAreas[0].name : 'Sin incidencias';
+    const worstAreaPct = worstAreas.length > 0 ? worstAreas[0].value : 100;
 
     return res.json({
       success: true,
@@ -705,12 +1017,30 @@ const getDashboardStats = async (req, res) => {
         totalRevisions,
         completed,
         inProgress,
-        totalChecklists,
-        totalSchedules,
-        averageScore,
+        pending,
+        overdueCount: overdue,
+        inProgressCount: inProgress,
+        scheduledToday,
+        executedToday,
+        compliancePct,
+        coveragePct,
+        periodLabel,
+        worstAreaName,
+        worstAreaPct,
+        locationCompliance,
+        bySede: locationCompliance,
+        statusData,
+        byStatus: statusData,
+        trendData,
+        trend: trendData,
+        heatmapData,
+        heatmap: heatmapData,
+        worstAreas,
+        lastUpdatedAt: new Date().toISOString(),
       }
     });
   } catch (error) {
+    console.error('Error al obtener estadísticas del dashboard:', error);
     return res.status(500).json({ success: false, message: error.message });
   }
 };

@@ -2,12 +2,11 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import useFetchAreas from '../hooks/useFetchAreas';
-import getSedeNameBySectorId from '../hooks/getSedeNameBySectorId';
-import { fetchSectorName } from '../hooks/fetchSectorName';
 import FormModal from '../../../components/FormModal';
 import QRCodeGenerator from './QRCodeGenerator';
 import { formatAreaCode } from '../utils/areaCode';
 import { getAllSedesFromCache } from '../../../services/sedeStorage';
+import { resolveAreaLocation, getQuickAreaLocation } from '../services/areaLocationResolver';
 import {
   FiChevronLeft,
   FiChevronRight,
@@ -52,26 +51,48 @@ const AreaTable: React.FC<AreaTableProps> = ({
   const [selectedAreaForQr, setSelectedAreaForQr] = useState<any>(null);
 
   useEffect(() => {
+    let isMounted = true;
+
     const fetchNames = async () => {
       if (areas.length === 0) {
-        setLocalAreas([]);
-      } else {
-        const allSedes = getAllSedesFromCache() || [];
-        const areasWithNames = await Promise.all(
-          areas.map(async (area: any) => {
-            const matchingSede = allSedes.find(
-              (s: any) => s.id === area.SedeId || s.id === area.sede_id || s.sede_id === area.SedeId
-            );
-            const sedeName = matchingSede?.name || (await getSedeNameBySectorId(area.SedeId));
-            const sectorName = await fetchSectorName(area.SectorId);
-            const sedePhoto = matchingSede?.url_photo || null;
-            return { ...area, sedeName, sectorName, sedePhoto };
-          })
-        );
-        setLocalAreas(areasWithNames);
+        if (isMounted) setLocalAreas([]);
+        return;
       }
+
+      const allSedes = getAllSedesFromCache() || [];
+
+      // Paso 1: Rápido en memoria
+      const quickItems = areas.map((area: any) => {
+        const info = getQuickAreaLocation(area, allSedes);
+        return {
+          ...area,
+          sedeName: info.sedeName,
+          sectorName: info.sectorName,
+          sedePhoto: info.sedePhoto,
+        };
+      });
+      if (isMounted) setLocalAreas(quickItems);
+
+      // Paso 2: Completo asíncrono
+      const areasWithNames = await Promise.all(
+        areas.map(async (area: any) => {
+          const info = await resolveAreaLocation(area, allSedes);
+          return {
+            ...area,
+            sedeName: info.sedeName,
+            sectorName: info.sectorName,
+            sedePhoto: info.sedePhoto,
+          };
+        })
+      );
+      if (isMounted) setLocalAreas(areasWithNames);
     };
+
     fetchNames();
+
+    return () => {
+      isMounted = false;
+    };
   }, [areas]);
 
   const handleSearch = () => {

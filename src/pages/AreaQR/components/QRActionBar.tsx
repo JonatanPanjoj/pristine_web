@@ -7,6 +7,7 @@ import { FiImage, FiFileText, FiGrid, FiCheckSquare } from 'react-icons/fi';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import { AreaItemData } from './AreaItemCard';
+import { waitForImages } from '../../../components/PPM/waitForImages';
 
 // A4 vertical (mm) y rejilla para el modo "varios en una hoja".
 const PAGE_WIDTH = 210;
@@ -35,7 +36,13 @@ export const QRActionBar: React.FC<QRActionBarProps> = ({ selectedItems, onSelec
   const captureLabel = async (item: AreaItemData): Promise<HTMLCanvasElement | null> => {
     const element = document.getElementById(`single-card-${item.id}`);
     if (!element) return null;
-    return html2canvas(element, { scale: 3, backgroundColor: '#ffffff' });
+    await waitForImages(element);
+    return html2canvas(element, {
+      scale: 3,
+      backgroundColor: '#ffffff',
+      useCORS: true,
+      allowTaint: false,
+    });
   };
 
   // Una etiqueta por hoja, centrada en la página.

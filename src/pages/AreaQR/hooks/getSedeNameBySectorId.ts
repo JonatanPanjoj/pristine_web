@@ -1,18 +1,11 @@
-import { getSedeById } from '../adapters/getSedeBySectorId';
+import { resolveAreaLocation } from '../services/areaLocationResolver';
 
-const sedeNameCache: Record<string, string | null> = {};
-
-// Función simple para obtener el nombre de la sede dado un sectorId con cache
+// Función para obtener el nombre de la sede dado un sectorId
 const getSedeNameBySectorId = async (sectorId: string): Promise<string | null> => {
   if (!sectorId) return null;
-  if (sectorId in sedeNameCache) {
-    return sedeNameCache[sectorId];
-  }
-
   try {
-    const result = await getSedeById(sectorId);
-    sedeNameCache[sectorId] = result;
-    return result;
+    const info = await resolveAreaLocation({ SectorId: sectorId, sector_id: sectorId });
+    return info.sedeName;
   } catch (error) {
     console.error('Error al obtener el nombre de la sede:', error);
     return null;

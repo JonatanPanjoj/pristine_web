@@ -57,82 +57,60 @@ export const useFetchChecklistDashboardStats = (filters?: any) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
+  const filtersKey = JSON.stringify(filters || {});
+
   useEffect(() => {
     let isMounted = true;
 
     const fetchStats = async () => {
       try {
         setLoading(true);
-        const [dashRes, sedesRes] = await Promise.all([
-          api.get('/checklist-dashboard/stats'),
-          api.get('/sedes'),
-        ]);
+
+        const params: any = {};
+        if (filters) {
+          if (filters.sedeId) params.sedeId = filters.sedeId;
+          if (filters.sectorId) params.sectorId = filters.sectorId;
+          if (filters.areaId) params.areaId = filters.areaId;
+          if (filters.categoryId) params.categoryId = filters.categoryId;
+          if (filters.statusId) params.statusId = filters.statusId;
+          if (filters.startDate) params.startDate = filters.startDate;
+          if (filters.endDate) params.endDate = filters.endDate;
+        }
+
+        const response = await api.get('/checklist-dashboard/stats', { params });
 
         if (!isMounted) return;
 
-        const backendStats = dashRes.data?.stats || {};
-        const sedes = sedesRes.data?.sedes || [];
-
-        const totalScheduled = backendStats.totalSchedules || 12;
-        const executed = backendStats.completed || 10;
-        const inProgress = backendStats.inProgress || 1;
-        const overdue = Math.max(0, totalScheduled - executed - inProgress);
-        const compliance = totalScheduled > 0 ? Math.round((executed / totalScheduled) * 100) : 100;
-
-        const bySede: SedeCompliancePoint[] = sedes.slice(0, 5).map((s: any, idx: number) => ({
-          name: s.name,
-          value: 80 + (idx * 3) % 20,
-        }));
-
-        const byStatus: StatusPoint[] = [
-          { name: 'Completadas', value: executed, color: '#38A169' },
-          { name: 'En Proceso', value: inProgress, color: '#389CD6' },
-          { name: 'Atrasadas', value: overdue, color: '#E53E3E' },
-        ];
-
-        const trend: TrendPoint[] = [
-          { name: 'Lun', value: 85 },
-          { name: 'Mar', value: 90 },
-          { name: 'Mié', value: 88 },
-          { name: 'Jue', value: 92 },
-          { name: 'Vie', value: 95 },
-        ];
-
-        const heatmap: HeatmapRow[] = [
-          { area: 'Área Técnica A', '06:00': 100, '12:00': 95, '18:00': 90, '22:00': 100 },
-          { area: 'Área Técnica B', '06:00': 80, '12:00': 85, '18:00': 75, '22:00': 90 },
-        ];
-
-        const worstAreas: WorstAreaPoint[] = [
-          { name: 'Área Técnica B', value: 75 },
-          { name: 'Área Técnica C', value: 80 },
-        ];
-
-        setStats({
-          compliancePct: compliance,
-          coveragePct: 92,
-          overdueCount: overdue,
-          inProgressCount: inProgress,
-          scheduledToday: totalScheduled,
-          executedToday: executed,
-          periodLabel: 'Hoy',
-          worstAreaName: 'Área Técnica B',
-          worstAreaPct: 75,
-          locationCompliance: bySede.length > 0 ? bySede : [{ name: 'Sede Central', value: 90 }],
-          bySede: bySede.length > 0 ? bySede : [{ name: 'Sede Central', value: 90 }],
-          statusData: byStatus,
-          byStatus,
-          trendData: trend,
-          trend,
-          heatmapData: heatmap,
-          heatmap,
-          worstAreas,
-          lastUpdatedAt: new Date().toISOString(),
-        });
-        setError(null);
+        const backendStats = response.data?.stats;
+        if (backendStats) {
+          setStats({
+            compliancePct: backendStats.compliancePct ?? 100,
+            coveragePct: backendStats.coveragePct ?? 100,
+            overdueCount: backendStats.overdueCount ?? 0,
+            inProgressCount: backendStats.inProgressCount ?? 0,
+            scheduledToday: backendStats.scheduledToday ?? 0,
+            executedToday: backendStats.executedToday ?? 0,
+            periodLabel: backendStats.periodLabel ?? 'General',
+            worstAreaName: backendStats.worstAreaName ?? 'Sin incidencias',
+            worstAreaPct: backendStats.worstAreaPct ?? 100,
+            locationCompliance: backendStats.locationCompliance || backendStats.bySede || [],
+            bySede: backendStats.bySede || backendStats.locationCompliance || [],
+            statusData: backendStats.statusData || backendStats.byStatus || [],
+            byStatus: backendStats.byStatus || backendStats.statusData || [],
+            trendData: backendStats.trendData || backendStats.trend || [],
+            trend: backendStats.trend || backendStats.trendData || [],
+            heatmapData: backendStats.heatmapData || backendStats.heatmap || [],
+            heatmap: backendStats.heatmap || backendStats.heatmapData || [],
+            worstAreas: backendStats.worstAreas || [],
+            lastUpdatedAt: backendStats.lastUpdatedAt || new Date().toISOString(),
+          });
+          setError(null);
+        } else {
+          setError('No se pudieron obtener las estadísticas del servidor.');
+        }
       } catch (err: any) {
-        console.error("Error al cargar estadísticas:", err);
-        setError("Error al cargar las estadísticas del dashboard.");
+        console.error('Error al cargar estadísticas:', err);
+        setError('Error al cargar las estadísticas del dashboard.');
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -143,7 +121,7 @@ export const useFetchChecklistDashboardStats = (filters?: any) => {
     return () => {
       isMounted = false;
     };
-  }, [filters]);
+  }, [filtersKey]);
 
   return { stats, loading, error };
 };

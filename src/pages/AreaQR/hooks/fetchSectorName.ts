@@ -1,20 +1,13 @@
-import { getSectorNameById } from "../adapters/getSectorNameById";
+import { resolveAreaLocation } from '../services/areaLocationResolver';
 
-const sectorNameCache: Record<string, string | null> = {};
-
-// Función para obtener el nombre de un sector por su ID con cache
+// Función para obtener el nombre de un sector por su ID
 export const fetchSectorName = async (sectorId: string): Promise<string | null> => {
   if (!sectorId) return null;
-  if (sectorId in sectorNameCache) {
-    return sectorNameCache[sectorId];
-  }
-
   try {
-    const sectorName = await getSectorNameById(sectorId);
-    sectorNameCache[sectorId] = sectorName;
-    return sectorName;
+    const info = await resolveAreaLocation({ SectorId: sectorId, sector_id: sectorId });
+    return info.sectorName;
   } catch (error) {
-    console.error("Error al obtener el nombre del sector:", error);
+    console.error('Error al obtener el nombre del sector:', error);
     return null;
   }
 };

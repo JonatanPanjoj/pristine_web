@@ -3,7 +3,7 @@
 // grande, y debajo el nombre del área en negrita seguido de Código, Sede y Nivel.
 // Se imprime una etiqueta por hoja (ver reglas @media print de AreaQRView).
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import qrcode from 'qrcode-generator';
 import PristineLogo from './PristineLogo';
 import { AreaItemData } from './AreaItemCard';
@@ -21,6 +21,11 @@ interface SingleQRCardProps {
 
 export const SingleQRCard: React.FC<SingleQRCardProps> = ({ item, id, width = 320 }) => {
   const codeStr = formatAreaCode(item.area_id);
+  const [imageError, setImageError] = useState(false);
+
+  useEffect(() => {
+    setImageError(false);
+  }, [item.sedePhoto]);
 
   const svgString = useMemo(() => {
     const build = (typeNumber: 0 | 4) => {
@@ -37,6 +42,9 @@ export const SingleQRCard: React.FC<SingleQRCardProps> = ({ item, id, width = 32
     }
   }, [codeStr]);
 
+  const hasPhoto = Boolean(item.sedePhoto && !imageError);
+  const isDataUrl = item.sedePhoto ? item.sedePhoto.startsWith('data:') : false;
+
   return (
     <div
       id={id}
@@ -44,13 +52,14 @@ export const SingleQRCard: React.FC<SingleQRCardProps> = ({ item, id, width = 32
       style={{ width, backgroundColor: '#ffffff', padding: '24px 20px' }}
     >
       <div style={{ width: width * 0.72, marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        {item.sedePhoto ? (
+        {hasPhoto ? (
           <img
-            src={item.sedePhoto}
+            src={item.sedePhoto!}
             alt={item.sedeName || 'Logo Sede'}
             className="qr-print-logo max-h-16 w-auto object-contain mx-auto"
             style={{ maxHeight: 64, maxWidth: '100%' }}
-            crossOrigin="anonymous"
+            crossOrigin={isDataUrl ? undefined : 'anonymous'}
+            onError={() => setImageError(true)}
           />
         ) : (
           <PristineLogo className="qr-print-logo" />

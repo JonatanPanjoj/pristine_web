@@ -20,8 +20,8 @@ import useEnabledSedesForUser from '../../../components/sedesEnabled/hooks/useEn
 import { fetchSectorsBySedeIds } from '../../../components/sectorAll/hooks/fetchSectorsBySedeIds';
 import { Sector } from '../../../models/Sector';
 import useFetchAreas from '../hooks/useFetchAreas';
-import getSedeNameBySectorId from '../hooks/getSedeNameBySectorId';
-import { fetchSectorName } from '../hooks/fetchSectorName';
+import { getQuickAreaLocation, resolveAreaLocation } from '../services/areaLocationResolver';
+import { waitForImages } from '../../../components/PPM/waitForImages';
 import { formatAreaCode } from '../utils/areaCode';
 
 import FormModal from '../../../components/FormModal';
@@ -115,18 +115,17 @@ export const AreaQRView: React.FC = () => {
         return;
       }
 
+      // 1. Pase sincrónico inicial con lo que ya está en memoria
       const initialItems: AreaItemData[] = areas.map((area: any) => {
-        const matchingSede = sedes.find(
-          (s) => s.id === area.SedeId || s.id === area.sede_id || s.sede_id === area.SedeId
-        );
+        const info = getQuickAreaLocation(area, sedes, sectors);
         return {
           id: area.id,
           area_id: area.area_id,
           name: area.name,
           level: area.level,
-          sedeName: area.sedeName || matchingSede?.name || null,
-          sectorName: area.sectorName || null,
-          sedePhoto: matchingSede?.url_photo || null,
+          sedeName: info.sedeName,
+          sectorName: info.sectorName,
+          sedePhoto: info.sedePhoto,
         };
       });
 
@@ -136,22 +135,18 @@ export const AreaQRView: React.FC = () => {
 
       if (isMounted) setLocalAreas(filteredInitial);
 
+      // 2. Resolución asincrónica: Área -> Sector -> Sede con obtención de url_photo y conversión a Data URL
       const areasWithNames = await Promise.all(
         areas.map(async (area: any) => {
-          const matchingSede = sedes.find(
-            (s) => s.id === area.SedeId || s.id === area.sede_id || s.sede_id === area.SedeId
-          );
-          const sedeName = matchingSede?.name || (await getSedeNameBySectorId(area.SedeId));
-          const sectorName = await fetchSectorName(area.SectorId);
-          const sedePhoto = matchingSede?.url_photo || null;
+          const info = await resolveAreaLocation(area, sedes, sectors);
           return {
             id: area.id,
             area_id: area.area_id,
             name: area.name,
             level: area.level,
-            sedeName,
-            sectorName,
-            sedePhoto,
+            sedeName: info.sedeName,
+            sectorName: info.sectorName,
+            sedePhoto: info.sedePhoto,
           };
         })
       );
@@ -161,6 +156,25 @@ export const AreaQRView: React.FC = () => {
           ? areasWithNames.filter((a) => String(a.level) === String(selectedLevel))
           : areasWithNames;
         setLocalAreas(filtered);
+
+        // Actualizar elementos seleccionados si cambiaron de nombre o foto
+        setSelectedItemsMap((prev) => {
+          if (Object.keys(prev).length === 0) return prev;
+          const next = { ...prev };
+          filtered.forEach((item) => {
+            if (next[item.id]) {
+              next[item.id] = item;
+            }
+          });
+          return next;
+        });
+
+        // Actualizar item modal activo si está abierto
+        setActiveModalItem((prev) => {
+          if (!prev) return null;
+          const found = filtered.find((item) => item.id === prev.id);
+          return found || prev;
+        });
       }
     };
 
@@ -169,7 +183,7 @@ export const AreaQRView: React.FC = () => {
     return () => {
       isMounted = false;
     };
-  }, [areas, selectedLevel, sedes]);
+  }, [areas, selectedLevel, sedes, sectors]);
 
   const handleSearch = () => {
     setSearchFields(searchTerm.trim() ? { name: searchTerm.trim() } : {});
@@ -203,7 +217,13 @@ export const AreaQRView: React.FC = () => {
     try {
       const element = document.getElementById(`single-card-${item.id}`);
       if (!element) return;
-      const canvas = await html2canvas(element, { scale: 3, backgroundColor: '#ffffff' });
+      await waitForImages(element);
+      const canvas = await html2canvas(element, {
+        scale: 3,
+        backgroundColor: '#ffffff',
+        useCORS: true,
+        allowTaint: false,
+      });
       const pdf = new jsPDF('p', 'mm', 'a4');
       const SINGLE_LABEL_WIDTH = 150;
       const PAGE_WIDTH = 210;
@@ -228,7 +248,13 @@ export const AreaQRView: React.FC = () => {
     try {
       const element = document.getElementById(`single-card-${item.id}`);
       if (!element) return;
-      const canvas = await html2canvas(element, { scale: 3, backgroundColor: '#ffffff' });
+      await waitForImages(element);
+      const canvas = await html2canvas(element, {
+        scale: 3,
+        backgroundColor: '#ffffff',
+        useCORS: true,
+        allowTaint: false,
+      });
       const link = document.createElement('a');
       link.download = `qr_${item.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}_${item.area_id}.png`;
       link.href = canvas.toDataURL('image/png');
@@ -240,6 +266,14 @@ export const AreaQRView: React.FC = () => {
 
   const selectedList = Object.values(selectedItemsMap);
   const isAllSelected = localAreas.length > 0 && localAreas.every((item) => !!selectedItemsMap[item.id]);
+
+  const printableItems = React.useMemo(() => {
+    const map = new Map<string, AreaItemData>();
+    localAreas.forEach((item) => map.set(item.id, item));
+    Object.values(selectedItemsMap).forEach((item) => map.set(item.id, item));
+    if (activeModalItem) map.set(activeModalItem.id, activeModalItem);
+    return Array.from(map.values());
+  }, [localAreas, selectedItemsMap, activeModalItem]);
 
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage !== currentPage) loadPage(newPage);
@@ -510,7 +544,16 @@ export const AreaQRView: React.FC = () => {
 
                       {/* Sede */}
                       <td className={`py-3 px-4 text-xs text-slate-600 font-semibold transition-colors ${isSelected ? 'bg-amber-50/60' : 'bg-[#FAFAFA]'}`}>
-                        {row.sedeName || '—'}
+                        <div className="flex items-center justify-center gap-2">
+                          {row.sedePhoto && (
+                            <img
+                              src={row.sedePhoto}
+                              alt={row.sedeName || 'Sede'}
+                              className="w-5 h-5 object-contain rounded-sm shrink-0"
+                            />
+                          )}
+                          <span className="truncate max-w-[130px]">{row.sedeName || '—'}</span>
+                        </div>
                       </td>
 
                       {/* Sector */}
@@ -640,7 +683,7 @@ export const AreaQRView: React.FC = () => {
           width: '100%',
         }}
       >
-        {localAreas.map((item) => (
+        {printableItems.map((item) => (
           <div
             key={item.id}
             className="print-single-page p-8 flex items-center justify-center min-h-screen bg-white"

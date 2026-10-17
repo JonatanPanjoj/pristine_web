@@ -42,7 +42,14 @@ export const getGlobalDashboardStatsAdapter = async (
   params: GetGlobalDashboardStatsParams
 ): Promise<GlobalDashboardStats> => {
   try {
-    const response = await api.get('/checklist-dashboard/stats');
+    const queryParams: any = {};
+    if (params.specificDate) {
+      const d = new Date(params.specificDate);
+      const iso = d.toISOString().slice(0, 10);
+      queryParams.startDate = iso;
+      queryParams.endDate = iso;
+    }
+    const response = await api.get('/checklist-dashboard/stats', { params: queryParams });
     const backendStats = response.data?.stats || {};
 
     const scheduled = backendStats.totalSchedules || 0;

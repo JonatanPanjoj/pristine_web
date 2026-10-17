@@ -27,6 +27,18 @@ const QRPreviewCard: React.FC<{ item: AreaItemData }> = ({ item }) => {
 
   return (
     <div className="bg-white border border-slate-200 rounded-2xl p-4 pb-5 flex flex-col items-center text-center shadow-sm hover:shadow-md transition-shadow">
+      {/* Logo de Sede si existe */}
+      {item.sedePhoto && (
+        <div className="w-full flex items-center justify-center mb-2 h-7">
+          <img
+            src={item.sedePhoto}
+            alt={item.sedeName || 'Logo Sede'}
+            className="max-h-7 w-auto object-contain mx-auto"
+            crossOrigin={item.sedePhoto.startsWith('data:') ? undefined : 'anonymous'}
+          />
+        </div>
+      )}
+
       {/* SVG del QR */}
       <div
         className="w-28 h-28 flex items-center justify-center mb-2"
@@ -40,6 +52,9 @@ const QRPreviewCard: React.FC<{ item: AreaItemData }> = ({ item }) => {
         </h4>
         <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
           Código: {codeStr}
+        </p>
+        <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
+          Sede: {item.sedeName || '—'}
         </p>
         <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
           Sector: {item.sectorName || 'Pristine'}
