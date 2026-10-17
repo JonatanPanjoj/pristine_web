@@ -7,6 +7,7 @@ import { fetchSectorName } from '../hooks/fetchSectorName';
 import FormModal from '../../../components/FormModal';
 import QRCodeGenerator from './QRCodeGenerator';
 import { formatAreaCode } from '../utils/areaCode';
+import { getAllSedesFromCache } from '../../../services/sedeStorage';
 import {
   FiChevronLeft,
   FiChevronRight,
@@ -48,17 +49,23 @@ const AreaTable: React.FC<AreaTableProps> = ({
   const [localAreas, setLocalAreas] = useState<any[]>([]);
   const [qrModalOpen, setQrModalOpen] = useState(false);
   const [qrCodeValue, setQrCodeValue] = useState('');
+  const [selectedAreaForQr, setSelectedAreaForQr] = useState<any>(null);
 
   useEffect(() => {
     const fetchNames = async () => {
       if (areas.length === 0) {
         setLocalAreas([]);
       } else {
+        const allSedes = getAllSedesFromCache() || [];
         const areasWithNames = await Promise.all(
           areas.map(async (area: any) => {
-            const sedeName = await getSedeNameBySectorId(area.SedeId);
+            const matchingSede = allSedes.find(
+              (s: any) => s.id === area.SedeId || s.id === area.sede_id || s.sede_id === area.SedeId
+            );
+            const sedeName = matchingSede?.name || (await getSedeNameBySectorId(area.SedeId));
             const sectorName = await fetchSectorName(area.SectorId);
-            return { ...area, sedeName, sectorName };
+            const sedePhoto = matchingSede?.url_photo || null;
+            return { ...area, sedeName, sectorName, sedePhoto };
           })
         );
         setLocalAreas(areasWithNames);
@@ -76,6 +83,7 @@ const AreaTable: React.FC<AreaTableProps> = ({
   const handleOpenQrModal = (area: any) => {
     const qrData = `${area.name}\nCódigo: ${formatAreaCode(area.area_id)}\nSede: ${area.sedeName}\nNivel: ${area.level}`.trim();
     setQrCodeValue(qrData);
+    setSelectedAreaForQr(area);
     setQrModalOpen(true);
   };
 
@@ -276,13 +284,17 @@ const AreaTable: React.FC<AreaTableProps> = ({
       {qrModalOpen && (
         <FormModal
           isOpen={qrModalOpen}
-          onClose={() => setQrModalOpen(false)}
+          onClose={() => { setQrModalOpen(false); setSelectedAreaForQr(null); }}
           maxWidth="max-w-md"
         >
           <div className="text-center p-4">
-            <QRCodeGenerator text={qrCodeValue} />
+            <QRCodeGenerator
+              text={qrCodeValue}
+              sedePhoto={selectedAreaForQr?.sedePhoto}
+              sedeName={selectedAreaForQr?.sedeName}
+            />
             <button
-              onClick={() => setQrModalOpen(false)}
+              onClick={() => { setQrModalOpen(false); setSelectedAreaForQr(null); }}
               className="mt-6 px-8 py-3 bg-primary-dark text-white rounded-full hover:opacity-90 transition-all font-bold text-sm shadow-[0_4px_12px_rgba(32,43,52,0.25)] active:scale-95"
             >
               Cerrar

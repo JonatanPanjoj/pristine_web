@@ -9,6 +9,7 @@ export interface AreaItemData {
   name: string;
   sedeName?: string | null;
   sectorName?: string | null;
+  sedePhoto?: string | null;
   level?: string | number | null;
 }
 

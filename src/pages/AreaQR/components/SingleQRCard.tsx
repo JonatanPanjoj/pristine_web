@@ -43,8 +43,18 @@ export const SingleQRCard: React.FC<SingleQRCardProps> = ({ item, id, width = 32
       className="qr-print-label bg-white flex flex-col items-center text-center mx-auto"
       style={{ width, backgroundColor: '#ffffff', padding: '24px 20px' }}
     >
-      <div style={{ width: width * 0.72, marginBottom: 20 }}>
-        <PristineLogo className="qr-print-logo" />
+      <div style={{ width: width * 0.72, marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        {item.sedePhoto ? (
+          <img
+            src={item.sedePhoto}
+            alt={item.sedeName || 'Logo Sede'}
+            className="qr-print-logo max-h-16 w-auto object-contain mx-auto"
+            style={{ maxHeight: 64, maxWidth: '100%' }}
+            crossOrigin="anonymous"
+          />
+        ) : (
+          <PristineLogo className="qr-print-logo" />
+        )}
       </div>
 
       <div

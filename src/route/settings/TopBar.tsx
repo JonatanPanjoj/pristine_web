@@ -248,6 +248,13 @@ const TopBar: React.FC<TopBarProps> = ({ user, isMinimized, isMobile, onToggleSi
       {/* ── Derecha ── */}
       <div className="flex items-center gap-2 shrink-0">
 
+        {/* Logo de la empresa en esquina superior derecha */}
+        <img
+          src="/img/logo.png"
+          alt="Logo Empresa"
+          className="h-8 w-auto object-contain shrink-0 hidden sm:block mr-1"
+        />
+
         {/* Nombre empresa */}
         <span className="hidden md:block text-xs font-medium text-gray-400 truncate max-w-[130px]">
           {process.env.REACT_APP_NAMECOMPANY || 'Company Name'}

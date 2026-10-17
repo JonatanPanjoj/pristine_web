@@ -8,6 +8,8 @@ import PristineLogo from './PristineLogo';
 
 interface QRCodeGeneratorProps {
   text: string;
+  sedePhoto?: string | null;
+  sedeName?: string | null;
 }
 
 // ── Extrae el código numérico del texto (ej. "0205") ──────────────────────────
@@ -78,13 +80,13 @@ const formatText = (text: string) => {
 };
 
 // ── Componente principal ──────────────────────────────────────────────────────
-const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({ text }) => {
+const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({ text, sedePhoto, sedeName }) => {
   const refToPrint = useRef<HTMLDivElement>(null);
   const code = useMemo(() => extractCode(text), [text]);
 
   const handlePrintImage = async () => {
     if (!refToPrint.current) return;
-    const canvas = await html2canvas(refToPrint.current, { scale: 3, backgroundColor: '#ffffff' });
+    const canvas = await html2canvas(refToPrint.current, { scale: 3, backgroundColor: '#ffffff', useCORS: true, allowTaint: true });
     const link = document.createElement('a');
     link.href = canvas.toDataURL('image/png');
     link.download = `qrcode-${code}.png`;
@@ -93,7 +95,7 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({ text }) => {
 
   const handlePrintPDF = async () => {
     if (!refToPrint.current) return;
-    const canvas = await html2canvas(refToPrint.current, { scale: 3, backgroundColor: '#ffffff' });
+    const canvas = await html2canvas(refToPrint.current, { scale: 3, backgroundColor: '#ffffff', useCORS: true, allowTaint: true });
     const imgData = canvas.toDataURL('image/png');
     const pdf = new jsPDF({ orientation: 'portrait', unit: 'px', format: 'letter' });
     const pageWidth  = pdf.internal.pageSize.getWidth();
@@ -116,9 +118,19 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({ text }) => {
         className="flex flex-col items-center bg-white border border-gray-200 rounded-2xl shadow-sm"
         style={{ width: 300, padding: '28px 24px 24px' }}
       >
-        {/* Logo Pristine */}
-        <div style={{ width: 190, margin: '0 auto 20px', display: 'block' }}>
-          <PristineLogo />
+        {/* Logo de la Sede o Pristine */}
+        <div style={{ width: 220, margin: '0 auto 20px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {sedePhoto ? (
+            <img
+              src={sedePhoto}
+              alt={sedeName || 'Logo Sede'}
+              className="max-h-16 w-auto object-contain mx-auto"
+              style={{ maxHeight: 60, maxWidth: '100%' }}
+              crossOrigin="anonymous"
+            />
+          ) : (
+            <PristineLogo />
+          )}
         </div>
 
         {/* QR generado con misma config que PHP:

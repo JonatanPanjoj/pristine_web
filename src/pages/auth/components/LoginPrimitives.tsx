@@ -75,7 +75,7 @@ export function LoginField({
           type={inputType}
           className={`w-full rounded-full bg-slate-100 text-[14px] text-[#1E293B] placeholder:text-[#94A4B8] py-3 ${
             icon ? 'pl-11' : 'pl-5'
-          } ${isPassword ? 'pr-11' : 'pr-5'} outline-none transition-shadow focus:ring-2 focus:ring-[#FCB521]/40`}
+          } ${isPassword ? 'pr-11' : 'pr-5'} outline-none transition-shadow focus:ring-2 focus:ring-[#389CD6]/40`}
         />
         {isPassword && (
           <button
@@ -99,7 +99,7 @@ export function LoginField({
   );
 }
 
-/* Primary gold CTA */
+/* Primary baby blue CTA */
 export function PrimaryButton({
   children,
   full = true,
@@ -117,7 +117,7 @@ export function PrimaryButton({
       disabled={disabled}
       className={`${
         full ? 'w-full' : ''
-      } inline-flex items-center justify-center gap-2 rounded-full bg-[#FCB521] px-8 py-3 font-bold text-sm text-white shadow-[0_4px_12px_rgba(221,152,3,0.25)] transition-all hover:bg-[#FFA700] hover:shadow-[0_6px_18px_rgba(221,152,3,0.35)] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed`}
+      } inline-flex items-center justify-center gap-2 rounded-full bg-[#389CD6] px-8 py-3.5 font-bold text-sm text-white shadow-[0_4px_14px_rgba(56,156,214,0.35)] transition-all hover:bg-[#2A82B5] hover:shadow-[0_6px_20px_rgba(56,156,214,0.45)] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed`}
     >
       {children}
       {withArrow && <ArrowRightIcon className="h-4 w-4" />}
@@ -183,7 +183,7 @@ export function RememberRow({
         <input
           {...field}
           type="checkbox"
-          className="h-4 w-4 rounded border-slate-300 text-[#FCB521] focus:ring-[#FCB521]/40"
+          className="h-4 w-4 rounded border-slate-300 text-[#389CD6] focus:ring-[#389CD6]/40"
         />
         {rememberLabel}
       </label>
@@ -193,7 +193,7 @@ export function RememberRow({
           e.preventDefault();
           if (onForgotClick) onForgotClick();
         }}
-        className="font-medium text-[#FFA700] hover:underline"
+        className="font-medium text-[#389CD6] hover:text-[#2A82B5] hover:underline"
       >
         {forgotLabel}
       </a>

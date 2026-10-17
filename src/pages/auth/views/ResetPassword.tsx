@@ -62,20 +62,20 @@ const ResetPassword: React.FC = () => {
     <div className="relative min-h-screen w-full bg-[#F6F7FD] flex items-center justify-center px-4 py-8 sm:px-6 overflow-hidden">
       {/* Círculos decorativos animados (Consistencia estética con el Login) */}
       <motion.div
-        className="pointer-events-none absolute -left-36 top-1/2 hidden h-96 w-96 rounded-full bg-[#FCB521]/10 lg:block"
+        className="pointer-events-none absolute -left-36 top-1/2 hidden h-96 w-96 rounded-full bg-[#389CD6]/15 lg:block"
         aria-hidden="true"
         animate={{ scale: [1, 1.06, 1], y: ["-50%", "-48%", "-50%"] }}
         transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
         style={{ y: "-50%" }}
       />
       <motion.div
-        className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-[#FCB521]/15 sm:h-64 sm:w-64"
+        className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-[#389CD6]/20 sm:h-64 sm:w-64"
         aria-hidden="true"
         animate={{ scale: [1, 1.10, 1] }}
         transition={{ duration: 9, delay: 1, repeat: Infinity, ease: "easeInOut" }}
       />
       <motion.div
-        className="pointer-events-none absolute bottom-10 right-[42%] h-16 w-16 rounded-full bg-[#FCB521]/25 sm:h-24 sm:w-24"
+        className="pointer-events-none absolute bottom-10 right-[42%] h-16 w-16 rounded-full bg-[#389CD6]/25 sm:h-24 sm:w-24"
         aria-hidden="true"
         animate={{ scale: [1, 1.14, 1] }}
         transition={{ duration: 7, delay: 0.5, repeat: Infinity, ease: "easeInOut" }}

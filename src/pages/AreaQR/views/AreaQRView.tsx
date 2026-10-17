@@ -115,14 +115,20 @@ export const AreaQRView: React.FC = () => {
         return;
       }
 
-      const initialItems: AreaItemData[] = areas.map((area: any) => ({
-        id: area.id,
-        area_id: area.area_id,
-        name: area.name,
-        level: area.level,
-        sedeName: area.sedeName || null,
-        sectorName: area.sectorName || null,
-      }));
+      const initialItems: AreaItemData[] = areas.map((area: any) => {
+        const matchingSede = sedes.find(
+          (s) => s.id === area.SedeId || s.id === area.sede_id || s.sede_id === area.SedeId
+        );
+        return {
+          id: area.id,
+          area_id: area.area_id,
+          name: area.name,
+          level: area.level,
+          sedeName: area.sedeName || matchingSede?.name || null,
+          sectorName: area.sectorName || null,
+          sedePhoto: matchingSede?.url_photo || null,
+        };
+      });
 
       const filteredInitial = selectedLevel
         ? initialItems.filter((a) => String(a.level) === String(selectedLevel))
@@ -132,8 +138,12 @@ export const AreaQRView: React.FC = () => {
 
       const areasWithNames = await Promise.all(
         areas.map(async (area: any) => {
-          const sedeName = await getSedeNameBySectorId(area.SedeId);
+          const matchingSede = sedes.find(
+            (s) => s.id === area.SedeId || s.id === area.sede_id || s.sede_id === area.SedeId
+          );
+          const sedeName = matchingSede?.name || (await getSedeNameBySectorId(area.SedeId));
           const sectorName = await fetchSectorName(area.SectorId);
+          const sedePhoto = matchingSede?.url_photo || null;
           return {
             id: area.id,
             area_id: area.area_id,
@@ -141,6 +151,7 @@ export const AreaQRView: React.FC = () => {
             level: area.level,
             sedeName,
             sectorName,
+            sedePhoto,
           };
         })
       );
@@ -158,7 +169,7 @@ export const AreaQRView: React.FC = () => {
     return () => {
       isMounted = false;
     };
-  }, [areas, selectedLevel]);
+  }, [areas, selectedLevel, sedes]);
 
   const handleSearch = () => {
     setSearchFields(searchTerm.trim() ? { name: searchTerm.trim() } : {});
