@@ -23,6 +23,8 @@ services:
       args:
         # URL de la API a la que el navegador del usuario final consultará:
         REACT_APP_API_URL: ${REACT_APP_API_URL:-http://localhost:5000/api}
+        # URL del Servidor 3 de imágenes (SRV-03):
+        REACT_APP_STORAGE_URL: ${REACT_APP_STORAGE_URL:-http://3.130.212.65:8080}
     container_name: pristine-frontend
     restart: always
     ports:

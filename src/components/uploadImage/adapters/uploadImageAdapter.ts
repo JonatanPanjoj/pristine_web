@@ -1,81 +1,62 @@
-// Subida de imágenes a S3 mediante presigned URLs firmadas por API Gateway + Lambda.
-// El frontend NUNCA ve credenciales de AWS: solo pide una URL temporal y sube el archivo directo a S3.
-//
-// Variables de entorno requeridas (.env, prefijo REACT_APP_ obligatorio en CRA):
-//   REACT_APP_S3_API_URL          -> endpoint de API Gateway, p.ej. https://abc123.execute-api.us-east-1.amazonaws.com/prod
-//   REACT_APP_S3_PUBLIC_BASE_URL  -> base estable de lectura (dominio de CloudFront), p.ej. https://dxxxx.cloudfront.net
+// Subida de imágenes al Servidor 3 (SRV-03 Storage) mediante HTTP REST.
+// Las imágenes se almacenan en el volumen persistente de SRV-03 y se sirven públicamente.
 
-const API_URL = process.env.REACT_APP_S3_API_URL;
-const PUBLIC_BASE_URL = process.env.REACT_APP_S3_PUBLIC_BASE_URL;
-
-if (!API_URL || !PUBLIC_BASE_URL) {
-  // Falla temprano y claro si falta configuración, en lugar de errores de red opacos.
-  console.warn('[uploadImageAdapter] Faltan REACT_APP_S3_API_URL o REACT_APP_S3_PUBLIC_BASE_URL en el .env');
-}
+const STORAGE_URL = process.env.REACT_APP_STORAGE_URL || 'http://3.130.212.65:8080';
 
 /**
- * Sube un archivo a S3 y devuelve los metadatos de la imagen.
- * `id` es la KEY completa en S3 (se usa luego para borrar).
- * `url` es una URL estable de lectura (CloudFront) que se puede guardar en Firestore.
+ * Sube un archivo a SRV-03 (Storage) y devuelve los metadatos de la imagen.
+ * `id` es el identificador/nombre del archivo guardado.
+ * `url` es la URL pública directa accesible desde cualquier navegador o app móvil.
  */
 export const uploadImageAdapter = async (file: File, customName: string) => {
   const timestamp = new Date().toISOString();
-  // Sanitiza el nombre para que sea una key válida y única dentro del bucket.
-  const safeName = `${customName}-${timestamp}`.replace(/[^a-zA-Z0-9._-]/g, '_');
-  const key = `checklistRevision/${safeName}`;
 
   try {
-    // 1. Pedir a la Lambda una presigned PUT URL.
-    const presignRes = await fetch(`${API_URL}/images`, {
+    const formData = new FormData();
+    formData.append('photo', file);
+    formData.append('customName', customName);
+
+    const res = await fetch(`${STORAGE_URL}/upload`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ key, contentType: file.type }),
+      body: formData,
     });
 
-    if (!presignRes.ok) {
-      throw new Error(`No se pudo obtener la URL de subida (HTTP ${presignRes.status}).`);
+    if (!res.ok) {
+      throw new Error(`Error en el servidor de imágenes (HTTP ${res.status}).`);
     }
 
-    const { uploadUrl } = (await presignRes.json()) as { uploadUrl: string };
-
-    // 2. Subir el archivo directo a S3 con la URL firmada.
-    //    El Content-Type debe coincidir con el que se firmó en la Lambda.
-    const putRes = await fetch(uploadUrl, {
-      method: 'PUT',
-      headers: { 'Content-Type': file.type },
-      body: file,
-    });
-
-    if (!putRes.ok) {
-      throw new Error(`Falló la subida a S3 (HTTP ${putRes.status}).`);
+    const data = await res.json();
+    if (!data.url && !data.success) {
+      throw new Error(data.message || 'Error al procesar la subida.');
     }
 
-    // 3. URL pública estable de lectura (vía CloudFront).
-    const url = `${PUBLIC_BASE_URL}/${key}`;
+    const url = data.url;
+    const id = data.id || data.filename || url.split('/').pop() || `${Date.now()}`;
 
-    return { id: key, url, name: file.name, date: timestamp };
-  } catch (error) {
-    console.error('Error al subir la imagen:', error);
-    throw new Error('No se pudo subir la imagen.');
+    return { id, url, name: file.name, date: timestamp };
+  } catch (error: any) {
+    console.error('[uploadImageAdapter] Error al subir la imagen al Servidor 3:', error);
+    throw new Error(error.message || 'No se pudo subir la imagen.');
   }
 };
 
 /**
- * Elimina una imagen de S3. `imageId` es la KEY completa devuelta por uploadImageAdapter.
+ * Elimina una imagen del Servidor 3.
  */
 export const deleteImageAdapter = async (imageId: string) => {
   try {
-    const res = await fetch(`${API_URL}/images?key=${encodeURIComponent(imageId)}`, {
+    const filename = imageId.includes('/') ? imageId.split('/').pop() : imageId;
+    const res = await fetch(`${STORAGE_URL}/images/${filename}`, {
       method: 'DELETE',
     });
 
-    if (!res.ok) {
-      throw new Error(`No se pudo eliminar la imagen (HTTP ${res.status}).`);
+    if (!res.ok && res.status !== 404) {
+      console.warn(`[uploadImageAdapter] Advertencia al eliminar imagen (HTTP ${res.status})`);
     }
 
     return true;
   } catch (error) {
-    console.error('Error al eliminar la imagen:', error);
-    throw new Error('No se pudo eliminar la imagen.');
+    console.error('[uploadImageAdapter] Error al eliminar imagen del Servidor 3:', error);
+    return false;
   }
-};
+};
