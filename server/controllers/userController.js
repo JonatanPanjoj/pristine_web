@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const { User, Sede } = require('../models');
 
 // Generador de tokens de búsqueda
@@ -195,6 +196,62 @@ const updateUserCategories = async (req, res) => {
   }
 };
 
+const addFcmToken = async (req, res) => {
+  try {
+    const { token } = req.body;
+    const { id } = req.params;
+    if (!token) return res.status(400).json({ success: false, message: 'Token es requerido' });
+
+    let user;
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      user = await User.findByIdAndUpdate(
+        id,
+        { $addToSet: { fcm_tokens: token } },
+        { new: true }
+      );
+    } else {
+      user = await User.findOneAndUpdate(
+        { user: id },
+        { $addToSet: { fcm_tokens: token } },
+        { new: true }
+      );
+    }
+
+    if (!user) return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
+    return res.json({ success: true, message: 'Token FCM registrado', fcm_tokens: user.fcm_tokens });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const removeFcmToken = async (req, res) => {
+  try {
+    const { token } = req.body;
+    const { id } = req.params;
+    if (!token) return res.status(400).json({ success: false, message: 'Token es requerido' });
+
+    let user;
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      user = await User.findByIdAndUpdate(
+        id,
+        { $pull: { fcm_tokens: token } },
+        { new: true }
+      );
+    } else {
+      user = await User.findOneAndUpdate(
+        { user: id },
+        { $pull: { fcm_tokens: token } },
+        { new: true }
+      );
+    }
+
+    if (!user) return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
+    return res.json({ success: true, message: 'Token FCM eliminado', fcm_tokens: user.fcm_tokens });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 module.exports = {
   getUsers,
   getUserById,
@@ -203,4 +260,6 @@ module.exports = {
   toggleUserStatus,
   updateUserSedes,
   updateUserCategories,
+  addFcmToken,
+  removeFcmToken,
 };

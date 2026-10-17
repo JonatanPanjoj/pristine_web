@@ -7,6 +7,7 @@ const roleController = require('../controllers/roleController');
 const locationController = require('../controllers/locationController');
 const checklistController = require('../controllers/checklistController');
 const miscController = require('../controllers/miscController');
+const notificationController = require('../controllers/notificationController');
 
 // ── AUTH ──
 router.post('/auth/login', authController.login);
@@ -20,6 +21,8 @@ router.put('/users/:id', userController.updateUser);
 router.patch('/users/:id/status', userController.toggleUserStatus);
 router.put('/users/:id/sedes', userController.updateUserSedes);
 router.put('/users/:id/categories', userController.updateUserCategories);
+router.post('/users/:id/fcm-token', userController.addFcmToken);
+router.delete('/users/:id/fcm-token', userController.removeFcmToken);
 
 // ── ROLES & PERMISOS ──
 router.get('/roles', roleController.getRoles);
@@ -74,5 +77,10 @@ router.get('/automatic-reports', miscController.getAutomaticReports);
 router.post('/automatic-reports', miscController.createAutomaticReport);
 router.put('/automatic-reports/:id', miscController.updateAutomaticReport);
 router.delete('/automatic-reports/:id', miscController.deleteAutomaticReport);
+
+// ── NOTIFICACIONES (MongoDB system_notifications & FCM) ──
+router.get('/notifications', notificationController.getNotifications);
+router.patch('/notifications/:id/read', notificationController.markAsRead);
+router.post('/notifications/send', notificationController.sendNotification);
 
 module.exports = router;

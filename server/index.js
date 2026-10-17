@@ -5,6 +5,7 @@ require('dotenv').config();
 
 const connectDB = require('./db');
 const apiRoutes = require('./routes/api');
+const { startChecklistScheduler } = require('./jobs/checklistScheduler');
 
 const app = express();
 const PORT = process.env.SERVER_PORT || 5000;
@@ -30,6 +31,10 @@ app.get('/health', (req, res) => {
 // Iniciar base de datos y servidor
 const startServer = async () => {
   await connectDB();
+  
+  // Iniciar tareas programadas (alertas 10 minutos antes de cierre de checklist)
+  startChecklistScheduler();
+
   app.listen(PORT, () => {
     console.log(`===============================================`);
     console.log(`  Pristine API Server activo en el puerto ${PORT}`);

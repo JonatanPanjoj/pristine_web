@@ -35,6 +35,7 @@ const UserSchema = new mongoose.Schema({
   sedes: [{ type: String }],
   categories: [{ type: String }],
   search_keywords: [{ type: String }],
+  fcm_tokens: [{ type: String }],
 }, schemaOptions);
 
 // 2. Roles (auth_roles)
@@ -247,6 +248,16 @@ const ChecklistMonthlyStatsSchema = new mongoose.Schema({
   compliance_percentage: { type: Number, default: 100 },
 }, schemaOptions);
 
+// 15. Notificaciones del Sistema (system_notifications)
+const SystemNotificationSchema = new mongoose.Schema({
+  user_id: { type: String, required: true, index: true },
+  title: { type: String, required: true },
+  body: { type: String, required: true },
+  type: { type: String, default: 'checklist_reminder' },
+  data: { type: mongoose.Schema.Types.Mixed, default: {} },
+  read: { type: Boolean, default: false },
+}, schemaOptions);
+
 module.exports = {
   User: mongoose.model('User', UserSchema, 'auth_users'),
   Role: mongoose.model('Role', RoleSchema, 'auth_roles'),
@@ -263,4 +274,6 @@ module.exports = {
   ChecklistMonthlyStats: mongoose.model('ChecklistMonthlyStats', ChecklistMonthlyStatsSchema, 'checklist_monthly_stats'),
   AppVersion: mongoose.model('AppVersion', AppVersionSchema, 'system_app_versions'),
   AutomaticReport: mongoose.model('AutomaticReport', AutomaticReportSchema, 'system_automatic_reports'),
+  SystemNotification: mongoose.model('SystemNotification', SystemNotificationSchema, 'system_notifications'),
 };
+
