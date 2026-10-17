@@ -11,8 +11,8 @@ services:
       - "5000:5000"
     environment:
       SERVER_PORT: 5000
-      # Cambia esta IP por la IP privada (o pública) de tu Servidor 2 (MongoDB en AWS):
-      MONGODB_URI: ${MONGODB_URI:-mongodb://localhost:27017/pristine}
+      # IP privada de tu Servidor 2 (MongoDB en AWS):
+      MONGODB_URI: ${MONGODB_URI:-mongodb://172.31.28.20:27017/pristine}
     networks:
       - pristine-net
 
@@ -21,8 +21,8 @@ services:
       context: .
       dockerfile: Dockerfile.frontend
       args:
-        # URL de la API a la que el navegador del usuario final consultará:
-        REACT_APP_API_URL: ${REACT_APP_API_URL:-http://localhost:5000/api}
+        # URL de la API a la que el navegador del usuario final consultará (IP Elástica SRV-01):
+        REACT_APP_API_URL: ${REACT_APP_API_URL:-http://18.223.202.252:5000/api}
         # URL del Servidor 3 de imágenes (SRV-03):
         REACT_APP_STORAGE_URL: ${REACT_APP_STORAGE_URL:-http://3.130.212.65:8080}
     container_name: pristine-frontend
