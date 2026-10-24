@@ -9,22 +9,43 @@ import {
   UserIcon
 } from 'lucide-react';
 import iconoLogin from '../../../assets/img/icono_login.png';
+import logoYLetras from '../../../assets/img/logo_y_letras.png';
+import logoOnly from '../../../assets/img/logo_only.png';
+import letrasOnly from '../../../assets/img/letras_logo_only.png';
 
 /* Brand logo mark — Pristine */
 export function BrandLogo({
   size = 'md',
+  variant = 'combined',
+  className = '',
   invert = false
 }: {
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg' | 'xl';
+  variant?: 'combined' | 'icon' | 'text';
+  className?: string;
   invert?: boolean;
 }) {
-  const dims = size === 'lg' ? 'h-24' : size === 'sm' ? 'h-8' : 'h-11';
+  const imgSrc =
+    variant === 'icon'
+      ? logoOnly
+      : variant === 'text'
+      ? letrasOnly
+      : logoYLetras;
+
+  const dims =
+    size === 'xl'
+      ? 'h-32 sm:h-36'
+      : size === 'lg'
+      ? 'h-24 sm:h-28'
+      : size === 'sm'
+      ? 'h-8'
+      : 'h-14';
   
   return (
     <img
-      src="/img/logo_largo.svg"
+      src={imgSrc}
       alt="Logo Pristine"
-      className={`${dims} w-auto object-contain`}
+      className={`${dims} w-auto object-contain ${className}`}
     />
   );
 }

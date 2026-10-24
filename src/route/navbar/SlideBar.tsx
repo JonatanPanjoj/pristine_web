@@ -23,6 +23,8 @@ import { useTranslation } from 'react-i18next';
 import { useLocation, Link } from 'react-router-dom';
 import useMenuLinks from '../routerLink/useMenuLinks';
 import useRoles from '../../rolKeys/getRolKeys';
+import logoOnly from '../../assets/img/logo_only.png';
+import letrasOnly from '../../assets/img/letras_logo_only.png';
 
 const MENU_ITEM_HEIGHT = 48;
 
@@ -205,8 +207,29 @@ export const SlideBar: React.FC<SlideBarProps> = memo(({ isMinimized, toggleMini
         `}
       >
         {/* Logo Pristine */}
-        <div className={`h-[60px] flex items-center px-5 border-b ${theme.logoBorder} shrink-0`}>
-          <img src="/img/logo_largo.svg" alt="Pristine Logo" className="h-7 w-auto shrink-0 max-w-[190px]" />
+        <div className={`h-[60px] flex items-center ${isMinimized ? 'justify-center px-2' : 'px-5'} border-b ${theme.logoBorder} shrink-0 overflow-hidden`}>
+          {isMinimized ? (
+            <div className={`flex items-center justify-center ${accentMode === 'dark' ? 'bg-white/95 p-1 rounded-xl shadow-sm' : ''}`}>
+              <img
+                src={logoOnly}
+                alt="Pristine"
+                className="h-8 w-8 object-contain shrink-0"
+              />
+            </div>
+          ) : (
+            <div className={`flex items-center gap-2.5 overflow-hidden ${accentMode === 'dark' ? 'bg-white/95 px-2.5 py-1 rounded-xl shadow-sm' : ''}`}>
+              <img
+                src={logoOnly}
+                alt="Pristine Logo"
+                className="h-7 w-7 object-contain shrink-0"
+              />
+              <img
+                src={letrasOnly}
+                alt="Pristine"
+                className="h-5 w-auto object-contain shrink-0 max-w-[140px]"
+              />
+            </div>
+          )}
         </div>
 
         {/* Listado de grupos */}

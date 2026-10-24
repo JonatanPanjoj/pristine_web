@@ -53,7 +53,7 @@ const Login: React.FC = () => {
       <div className="relative w-full max-w-6xl mx-auto bg-white/80 backdrop-blur-xl rounded-[40px] shadow-[0_24px_70px_rgba(0,0,0,0.07)] border border-white/40 p-4 sm:p-6 lg:p-8 flex flex-col lg:flex-row items-stretch gap-8 lg:gap-12 z-10">
         
         {/* Lado Izquierdo: Imagen de fondo con Overlay y Textos */}
-        <div className="relative hidden lg:flex w-1/2 min-h-[620px] rounded-[32px] overflow-hidden flex-col justify-end p-12 text-white">
+        <div className="relative hidden lg:flex w-1/2 min-h-[620px] rounded-[32px] overflow-hidden flex-col justify-between p-12 text-white">
           {/* Imagen de fondo */}
           <img 
             src={loginBg} 
@@ -63,6 +63,17 @@ const Login: React.FC = () => {
           {/* Overlay negro con opacidad */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-black/20 mix-blend-multiply" />
           
+          {/* Badge superior con isotipo Pristine */}
+          <div className="relative z-10 flex items-center gap-3">
+            <div className="bg-white/95 backdrop-blur-md p-2 rounded-2xl shadow-lg border border-white/40 flex items-center justify-center">
+              <img src="/img/logo_only.png" alt="Pristine" className="h-8 w-8 object-contain" />
+            </div>
+            <div className="flex flex-col">
+              <span className="font-bold text-white text-base tracking-wide leading-tight drop-shadow-sm">Pristine</span>
+              <span className="text-[11px] font-medium text-slate-300 tracking-wider uppercase">Plataforma de Gestión</span>
+            </div>
+          </div>
+
           {/* Textos sobre la imagen en la parte inferior centrada */}
           <div className="relative z-10 flex flex-col items-center text-center max-w-md mx-auto w-full">
             <h1 className="text-[32px] sm:text-[38px] font-bold leading-[1.2] tracking-tight text-white">

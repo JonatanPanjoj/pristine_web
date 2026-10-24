@@ -216,7 +216,7 @@ const ProtectedRouteLayout: React.FC = () => {
           <header className="app-header sticky top-0 z-30 h-16 flex items-center px-6 gap-4">
             {/* Nombre empresa + separador */}
             <div className="flex items-center gap-3 shrink-0">
-              <span className="company-dot" />
+              <img src="/img/logo_only.png" alt="Pristine" className="h-6 w-6 object-contain rounded" />
               <span
                 className="font-semibold text-sm text-gray-800 tracking-tight"
                 style={{ fontFamily: "'Inter', sans-serif" }}

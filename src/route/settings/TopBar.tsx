@@ -222,6 +222,15 @@ const TopBar: React.FC<TopBarProps> = ({ user, isMinimized, isMobile, onToggleSi
         <ToggleIcon className="w-5 h-5" />
       </button>
 
+      {/* Logo visible en móvil */}
+      {isMobile && (
+        <img
+          src="/img/logo_only.png"
+          alt="Pristine"
+          className="h-7 w-7 object-contain shrink-0 ml-1"
+        />
+      )}
+
       {/* Divisor */}
       <span className="w-px h-5 bg-gray-200 shrink-0" />
 
@@ -250,14 +259,14 @@ const TopBar: React.FC<TopBarProps> = ({ user, isMinimized, isMobile, onToggleSi
 
         {/* Logo de la empresa en esquina superior derecha */}
         <img
-          src="/img/logo.png"
+          src="/img/logo_only.png"
           alt="Logo Empresa"
           className="h-8 w-auto object-contain shrink-0 hidden sm:block mr-1"
         />
 
         {/* Nombre empresa */}
-        <span className="hidden md:block text-xs font-medium text-gray-400 truncate max-w-[130px]">
-          {process.env.REACT_APP_NAMECOMPANY || 'Company Name'}
+        <span className="hidden md:block text-xs font-medium text-gray-500 truncate max-w-[130px]">
+          {process.env.REACT_APP_NAMECOMPANY || 'Pristine'}
         </span>
         <span className="hidden md:block w-px h-5 bg-gray-200" />
 

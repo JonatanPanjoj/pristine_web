@@ -21,8 +21,13 @@ export const Navbar: React.FC = () => {
     <nav className="bg-transparent p-4 fixed top-0 left-0 right-0 z-50">
       <div className="container mx-auto flex justify-between items-center">
         {/* Logo */}
-        <Link to="/" className="text-white text-lg font-bold">
-          {process.env.REACT_APP_NAMECOMPANY}
+        <Link to="/" className="flex items-center gap-2.5 group">
+          <div className="bg-white/95 p-1 rounded-xl shadow-sm flex items-center justify-center transition-transform group-hover:scale-105">
+            <img src="/img/logo_only.png" alt="Pristine" className="h-7 w-7 object-contain" />
+          </div>
+          <span className="text-white text-lg font-bold tracking-tight">
+            {process.env.REACT_APP_NAMECOMPANY || 'Pristine'}
+          </span>
         </Link>
 
         {/* Botón de menú para dispositivos móviles */}
